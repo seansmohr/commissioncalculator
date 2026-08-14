@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commission Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="page__header">
+      <h1>Commission Calculator</h1>
+      <p class="page__sub">Enter the policy you sold and see what the agency should be paid.</p>
+    </header>
+
+    <form id="calc-form" class="card" autocomplete="off">
+      <div class="field">
+        <label for="carrier">Carrier</label>
+        <select id="carrier" name="carrier" required>
+          <option value="">Select a carrier</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="state">State</label>
+        <select id="state" name="state" required disabled>
+          <option value="">Select a carrier first</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="product">Product</label>
+        <select id="product" name="product" required disabled>
+          <option value="">Select a state first</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="age">Client Age</label>
+          <input type="number" id="age" name="age" min="0" max="120" step="1" inputmode="numeric" placeholder="68" required>
+        </div>
+
+        <div class="field">
+          <label for="premium">Monthly Premium</label>
+          <div class="input-prefix">
+            <span aria-hidden="true">$</span>
+            <input type="number" id="premium" name="premium" min="0.01" step="0.01" inputmode="decimal" placeholder="100.00" required>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">Calculate Commission</button>
+    </form>
+
+    <section id="results" class="results" aria-live="polite"></section>
+
+    <footer class="page__footer">
+      <p>
+        Rates come from our own carrier commission schedules at our contracted levels.
+        Estimates only &mdash; the carrier&rsquo;s statement is the final word.
+      </p>
+      <p id="coverage-note" class="page__footer-note"></p>
+    </footer>
+  </main>
+
+  <script src="data/commission-data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

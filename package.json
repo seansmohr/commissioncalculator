@@ -1,0 +1,9 @@
+{
+  "name": "commission-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Insurance commission calculator for Mohr Insurance Services",
+  "scripts": {
+    "test": "node test/engine.test.js"
+  }
+}
