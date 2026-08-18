@@ -5,8 +5,5 @@
   "description": "Insurance commission calculator for Mohr Insurance Services",
   "scripts": {
     "test": "node test/engine.test.js"
-  },
-  "devDependencies": {
-    "playwright": "^1.62.1"
   }
 }
