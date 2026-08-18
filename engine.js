@@ -97,10 +97,16 @@
     return hi - lo;
   }
 
-  /** Advance months for a carrier + product category, per the spreadsheet. */
+  /**
+   * Advance months for a carrier + product category, per the spreadsheet.
+   *
+   *   number  - the advance term in months (0 means no advance / as-earned)
+   *   null    - carrier is known but its advance term is not on file
+   *   undefined - carrier is not in the advance table at all
+   */
   function getAdvanceMonths(carrier, category) {
     var entry = DATA.advances[carrier];
-    if (!entry) { return null; }
+    if (!entry) { return undefined; }
     if (entry.byCategory && Object.prototype.hasOwnProperty.call(entry.byCategory, category)) {
       return entry.byCategory[category];
     }
@@ -140,7 +146,7 @@
     }
 
     var advanceMonths = getAdvanceMonths(carrier, rule.category);
-    if (advanceMonths == null) {
+    if (advanceMonths === undefined) {
       return { found: false, message: NOT_FOUND };
     }
 
@@ -166,7 +172,11 @@
       advanceSource: getAdvanceSource(carrier)
     };
 
-    if (advanceMonths > 0) {
+    if (advanceMonths === null) {
+      // Rate is known, advance term is not. Report the commission and say so
+      // rather than inventing an upfront figure.
+      result.paymentMethod = 'advance-unknown';
+    } else if (advanceMonths > 0) {
       result.paymentMethod = 'advance';
       result.upfrontCommission = monthlyPremium * advanceMonths * rate;
       result.remainingAsEarned = totalFirstYearCommission - result.upfrontCommission;

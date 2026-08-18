@@ -18,6 +18,7 @@ published rates are used anywhere.
 | Liberty Bankers | `Liberty Bankers Commission Schedules` (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) | MGA Level 4 |
 | Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) | General Agent |
+| Heartland | `heartland commission schedules` (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Short-Term Home Health Care rev. 10/23) | GA1 |
 
 Advance arrangements come from column B of
 `Carrier Advances_Commission schedules.xlsx` and nowhere else — the spreadsheet
@@ -45,35 +46,59 @@ These are omissions, not guesses. The calculator returns
 than estimating.
 
 1. **GTL** — no rules loaded. The linked schedule is a PNG image and the image
-   data could not be retrieved intact, so there is no rate text to transcribe.
-   The spreadsheet's 9-month advance for GTL is already recorded; only the rates
-   are missing. Send the schedule as a PDF or paste the rates and this is a
-   quick add.
+   data cannot be retrieved intact through the Drive connector (it arrives
+   truncated and renders blank), so there is no rate text to transcribe. The
+   spreadsheet's 9-month advance for GTL is already recorded; only the rates are
+   missing. **A PDF version, or the rates pasted as text, is all that's needed.**
 
-2. **Heartland** — no rules loaded. The spreadsheet has no schedule link and no
-   advance arrangement for this carrier.
+2. **Mutual of Omaha — everything except Long Term Care.** The linked PDF is
+   complete (it ends cleanly at "Page 8 of 8" of the Long Term Care schedule),
+   but it *only contains* the Long Term Care compensation schedule. The Contract
+   Summary inside it lists seven other schedules on our contract that are not in
+   the file:
 
-3. **Mutual of Omaha — Medicare Supplement, Dental, Dental Savings, Hospital
-   Indemnity, Accidental Death.** The PDF's text extraction stopped after the
-   Long Term Care schedule, so only Long Term Care rates are loaded. The contract
-   summary confirms these products exist on our contract (schedule codes Q64.021,
-   AM2.001, R62.005, K18.001, K73.001, V09.001, JF9.001) but the rate tables were
-   not recoverable. Note the schedule also states a **9-month** advance applies to
-   the Accidental Death product specifically, versus 12 months for other Mutual of
-   Omaha health products.
+   | Product | Schedule code |
+   |---|---|
+   | Medicare Supplement (Mutual Health) | Q64.021 |
+   | Medicare Supplement (United Health) | AM2.001 |
+   | Medicare Supplement (United World) | R62.005 |
+   | Accidental Death | JF9.001 |
+   | Dental | K18.001 |
+   | Dental Savings | K73.001 |
+   | Hospital Indemnity | V09.001 |
 
-4. **American Benefit Life — New Jersey, Ohio, Nevada, Iowa, Nebraska.** In the
+   Note the schedule states a **9-month** advance applies to the Accidental Death
+   product specifically, versus 12 months for other Mutual of Omaha health
+   products — so that product needs its own advance entry once rates arrive.
+
+3. **Heartland — advance term unknown.** Rates are loaded, but the spreadsheet
+   leaves the advance column blank for Heartland and the schedule never states a
+   term (it only confirms advances exist, via "chargebacks on unearned advanced
+   premiums"). The calculator shows the rate and total first-year commission and
+   labels the advance "Not on file" rather than inventing an upfront figure. The
+   Medicare Supplement schedule does add that **commissions are not advanced on
+   under-65 or 81+ policies**.
+
+4. **Heartland — one unidentified rate table.** The combined PDF contains a GA1
+   rate table (form 93017, dated 10/1/2017) whose product name is not in the
+   extracted text. It covers issue ages 0–80 and 81–85 across three state groups:
+   60%/40% first year for AL, AK, AR, DE, GA, HI, IL, IA, KS, LA, MS, MO, NV, NM,
+   NC, OK, OR, PA, TX, UT, WV; 55%/35% for AZ, FL, IN, KY, MD, MT, NE, ND, OH,
+   SC, TN, VA; and 45%/30% for CO, SD, WY. **Tell us which product this is and it
+   can be added as-is** — the rates are unambiguous, only the name is missing.
+
+5. **American Benefit Life — New Jersey, Ohio, Nevada, Iowa, Nebraska.** In the
    ABL PDF these five state blocks appear with their headings separated from
    their rate rows, so which rate row belongs to which state cannot be
    established with certainty. Rather than guess, these states are left out.
    Every other ABL state block was unambiguous and is loaded.
 
-5. **Aetna — Illinois under-65 Medicare Supplement, and the Protection Series /
+6. **Aetna — Illinois under-65 Medicare Supplement, and the Protection Series /
    Home Care / Recovery Care legacy products.** Same problem: the state-to-rate
    column mapping in those specific tables was not recoverable with certainty.
    Illinois ages 65+ and 80+ are loaded; Illinois under-65 is not.
 
-6. **Healthspring — the "Level" (as opposed to "Heaped") Dental/Vision/Hearing
+7. **Healthspring — the "Level" (as opposed to "Heaped") Dental/Vision/Hearing
    variants.** Only the Heaped rates were unambiguous.
 
 ## Flagged for spot-check
@@ -83,6 +108,12 @@ show a caution note on the results card. Those rates come from a two-column PDF
 layout where the left column is the 50%/60% state group and the right column is
 the 55%/65% group. The column pairing is structurally clear but worth confirming
 against the schedule before quoting a large case.
+
+**Heartland North Carolina, under age 65.** The NC block has three plan tables
+but only one "Age 0-64" table (0.90%), so that rate is applied to all three NC
+plans. Every other state on this schedule uses a single under-65 rate across all
+plans, so this is consistent with the document's own structure — but it is the
+one place the reading is inferred from layout rather than read off directly.
 
 ## Discrepancy worth knowing about
 

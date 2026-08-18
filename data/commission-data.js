@@ -94,6 +94,15 @@
       default: 6,
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary"'
+    },
+    'Heartland': {
+      // The spreadsheet leaves the advance column blank for Heartland, and the
+      // schedule confirms advances exist ("chargebacks on unearned advanced
+      // premiums") without stating a term. null = known carrier, unknown term:
+      // the calculator shows the rate and total first-year commission but will
+      // not invent an upfront figure.
+      default: null,
+      source: 'Advance term not stated in the spreadsheet or the schedule. The Medicare Supplement schedule adds: "Commissions are not advanced on policies for Under 65 or 81+ policyholders."'
     }
   };
 
@@ -1101,14 +1110,85 @@
     ]);
   }());
 
+  // ===========================================================================
+  // HEARTLAND NATIONAL - GA1 level
+  // Advance term is not on file (see the ADVANCES entry above).
+  // ===========================================================================
+  (function heartland() {
+    var noAdvanceUnder65Or81 = 'Heartland does not advance commissions on policies for under 65 or 81+ policyholders.';
+
+    // --- Simply Secure Cancer, Heart Attack & Stroke (GA1) -------------------
+    add([
+      {
+        carrier: 'Heartland', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+        product: 'Simply Secure Cancer, Heart Attack & Stroke', minAge: 18, maxAge: 84, rate: 0.80
+      },
+      {
+        carrier: 'Heartland', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+        product: 'Simply Secure Cancer, Heart Attack & Stroke', minAge: 85, maxAge: 90, rate: 0.60
+      },
+      {
+        carrier: 'Heartland', states: ['FL'], category: 'ancillary',
+        product: 'Simply Secure Cancer, Heart Attack & Stroke', minAge: 18, maxAge: 84, rate: 0.65
+      },
+      {
+        carrier: 'Heartland', states: ['FL'], category: 'ancillary',
+        product: 'Simply Secure Cancer, Heart Attack & Stroke', minAge: 85, maxAge: 90, rate: 0.45
+      }
+    ]);
+
+    // --- Secure Choice Short-Term Home Health Care (GA1) ---------------------
+    add([
+      {
+        carrier: 'Heartland', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+        product: 'Secure Choice Short-Term Home Health Care', minAge: 40, maxAge: 75, rate: 0.55
+      },
+      {
+        carrier: 'Heartland', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+        product: 'Secure Choice Short-Term Home Health Care', minAge: 76, rate: 0.50
+      }
+    ]);
+
+    // --- Medicare Supplement (Heartland National, eff. 06/01/2019) -----------
+    // Our appointed states appearing on this schedule: NC, OH, PA.
+    function hms(states, product, bands, note) {
+      bands.forEach(function (b) {
+        add([{
+          carrier: 'Heartland', states: states, category: 'medicare_supplement',
+          product: product, minAge: b[0], maxAge: b[1], rate: b[2], note: note
+        }]);
+      });
+    }
+
+    var ncUnder65 = 'Under age 65 pays 0.90% on every plan in NC. ' + noAdvanceUnder65Or81;
+
+    hms(['NC'], 'Medicare Supplement - Plan A',
+      [[null, 64, 0.009], [65, 80, 0.016], [81, null, 0.016]], ncUnder65);
+    hms(['NC'], 'Medicare Supplement - Plan G',
+      [[null, 64, 0.009], [65, 80, 0.18], [81, null, 0.04]], ncUnder65);
+    hms(['NC'], 'Medicare Supplement - Plan N',
+      [[null, 64, 0.009], [65, 80, 0.20], [81, null, 0.0925]], ncUnder65);
+
+    hms(['OH'], 'Medicare Supplement - Plan A',
+      [[65, 80, 0.028], [81, null, 0.028]], noAdvanceUnder65Or81);
+    hms(['OH'], 'Medicare Supplement - Plans C & G',
+      [[65, 80, 0.19], [81, null, 0.05]], noAdvanceUnder65Or81);
+    hms(['OH'], 'Medicare Supplement - Plan N',
+      [[65, 80, 0.21], [81, null, 0.1025]], noAdvanceUnder65Or81);
+
+    var paNote = noAdvanceUnder65Or81 + ' Guaranteed Issue business in PA pays 4% to the writing agent, years 1-6.';
+    hms(['PA'], 'Medicare Supplement - Plans A, B, C, G',
+      [[null, 64, 0.016], [65, 80, 0.18], [81, null, 0.04]], paNote);
+    hms(['PA'], 'Medicare Supplement - Plan N',
+      [[null, 64, 0.016], [65, 80, 0.20], [81, null, 0.0925]], paNote);
+  }());
+
   // ---------------------------------------------------------------------------
   // Carriers with no usable rate data yet (kept out of the dropdown, listed in
-  // SOURCES.md). GTL's schedule is an image file; Heartland has no schedule
-  // linked in the spreadsheet.
+  // SOURCES.md).
   // ---------------------------------------------------------------------------
   var CARRIERS_WITHOUT_DATA = [
-    { name: 'GTL', reason: 'The linked commission schedule is an image file with no extractable rate text.' },
-    { name: 'Heartland', reason: 'No commission schedule link and no advance arrangement in the spreadsheet.' }
+    { name: 'GTL', reason: 'The linked commission schedule is a PNG image and the image data cannot be retrieved intact, so there is no rate text to transcribe.' }
   ];
 
   var DATA = {

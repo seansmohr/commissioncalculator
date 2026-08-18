@@ -288,6 +288,59 @@ test('invalid age and premium are rejected before any lookup', function () {
   assert.strictEqual(badPremium.found, false);
 });
 
+console.log('\nHeartland (advance term not on file)');
+
+test('Heartland reports the rate but refuses to invent an upfront figure', function () {
+  var r = engine.calculate({
+    carrier: 'Heartland', state: 'OH',
+    product: 'Medicare Supplement - Plan N', age: 70, monthlyPremium: 100
+  });
+  assert.strictEqual(r.found, true);
+  close(r.rate, 0.21, 'rate');
+  close(r.totalFirstYearCommission, 252, 'total first-year commission');
+  assert.strictEqual(r.advanceMonths, null);
+  assert.strictEqual(r.paymentMethod, 'advance-unknown');
+  assert.strictEqual(r.upfrontCommission, undefined, 'must not produce an upfront figure');
+  assert.strictEqual(r.monthlyCommission, undefined, 'must not imply as-earned either');
+});
+
+test('unknown advance is distinct from a genuine no-advance carrier', function () {
+  assert.strictEqual(engine.getAdvanceMonths('Heartland', 'ancillary'), null);
+  assert.strictEqual(engine.getAdvanceMonths('Manhattan Life', 'ancillary'), 0);
+  assert.strictEqual(engine.getAdvanceMonths('Nonexistent Carrier', 'ancillary'), undefined);
+});
+
+test('Heartland Medicare Supplement age bands and plan splits', function () {
+  close(engine.findRule('Heartland', 'PA', 'Medicare Supplement - Plans A, B, C, G', 70).rate, 0.18, 'PA A/B/C/G 65-80');
+  close(engine.findRule('Heartland', 'PA', 'Medicare Supplement - Plans A, B, C, G', 82).rate, 0.04, 'PA A/B/C/G 81+');
+  close(engine.findRule('Heartland', 'PA', 'Medicare Supplement - Plan N', 70).rate, 0.20, 'PA Plan N 65-80');
+  close(engine.findRule('Heartland', 'PA', 'Medicare Supplement - Plan N', 82).rate, 0.0925, 'PA Plan N 81+');
+  close(engine.findRule('Heartland', 'PA', 'Medicare Supplement - Plan N', 60).rate, 0.016, 'PA Plan N under 65');
+  close(engine.findRule('Heartland', 'NC', 'Medicare Supplement - Plan G', 70).rate, 0.18, 'NC Plan G 65-80');
+  close(engine.findRule('Heartland', 'OH', 'Medicare Supplement - Plans C & G', 70).rate, 0.19, 'OH C&G 65-80');
+});
+
+test('Heartland Medicare Supplement is only offered in NC, OH and PA', function () {
+  ['NC', 'OH', 'PA'].forEach(function (st) {
+    var products = engine.getProducts('Heartland', st);
+    assert.ok(products.some(function (p) { return p.indexOf('Medicare Supplement') === 0; }),
+      st + ' should offer Heartland Medicare Supplement');
+  });
+  ['AZ', 'IL', 'LA', 'NV', 'TX', 'VA', 'FL'].forEach(function (st) {
+    var products = engine.getProducts('Heartland', st);
+    assert.ok(!products.some(function (p) { return p.indexOf('Medicare Supplement') === 0; }),
+      st + ' should not offer Heartland Medicare Supplement');
+  });
+});
+
+test('Heartland ancillary rates split by state group', function () {
+  var p = 'Simply Secure Cancer, Heart Attack & Stroke';
+  close(engine.findRule('Heartland', 'TX', p, 50).rate, 0.80, 'generic states 18-84');
+  close(engine.findRule('Heartland', 'TX', p, 86).rate, 0.60, 'generic states 85-90');
+  close(engine.findRule('Heartland', 'FL', p, 50).rate, 0.65, 'FL 18-84');
+  close(engine.findRule('Heartland', 'FL', p, 86).rate, 0.45, 'FL 85-90');
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {

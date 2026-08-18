@@ -171,7 +171,9 @@
     var bottom = document.createElement('div');
     bottom.className = 'result-group';
 
-    if (result.paymentMethod === 'advance') {
+    if (result.paymentMethod === 'advance-unknown') {
+      bottom.appendChild(row('Advance', 'Not on file'));
+    } else if (result.paymentMethod === 'advance') {
       bottom.appendChild(row('Advance', result.advanceMonths + ' Months'));
       bottom.appendChild(row('Expected Upfront Commission', money.format(result.upfrontCommission), { strong: true }));
       if (result.remainingAsEarned > 0.005) {
@@ -187,6 +189,13 @@
     }
     card.appendChild(bottom);
 
+    if (result.paymentMethod === 'advance-unknown') {
+      card.appendChild(noteEl(
+        'We do not have this carrier\u2019s advance term on file, so the upfront amount cannot be calculated. ' +
+        'The rate and total first-year commission above are correct.',
+        'warn'
+      ));
+    }
     if (result.rate === 0) {
       card.appendChild(noteEl('This schedule pays 0% on this combination. That is the contracted rate, not a missing lookup.'));
     }

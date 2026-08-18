@@ -84,14 +84,20 @@ in a dropdown but resolve at no age).
 
 ## Data coverage
 
-Loaded: Aetna Senior Supplemental, Mutual of Omaha (Long Term Care only),
-Healthspring, Physicians Mutual, Manhattan Life, Aflac, American Benefit Life,
-Liberty Bankers, Medico, Bankers Fidelity.
+Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life, Bankers
+Fidelity, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
+Mutual of Omaha (Long Term Care only), Physicians Mutual.
 
-Not loaded: **GTL** (schedule is an image file — rates couldn't be read) and
-**Heartland** (no schedule linked in the spreadsheet). A handful of individual
-state blocks were also left out where the source PDF's layout made the
-state-to-rate mapping ambiguous. All of it is listed in
+Not loaded: **GTL** — its schedule is a PNG image whose data can't be retrieved
+intact, so there are no rates to transcribe.
+
+Heartland's rates are loaded but its **advance term is unknown** (blank in the
+spreadsheet, unstated in the schedule). For Heartland the calculator shows the
+rate and total first-year commission and labels the advance "Not on file"
+rather than inventing an upfront figure.
+
+A handful of individual state blocks were also left out where the source PDF's
+layout made the state-to-rate mapping ambiguous. All of it is listed in
 [`data/SOURCES.md`](data/SOURCES.md).
 
 ## Adding or fixing rates
