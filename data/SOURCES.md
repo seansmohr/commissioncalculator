@@ -8,7 +8,7 @@ published rates are used anywhere.
 
 | Carrier | Schedule read | Our contract level |
 |---|---|---|
-| Aetna Senior Supplemental | `aetna senior supplemental commission schedule.pdf` (eff. 07/23/2026) | General Agent, Level 12 |
+| Aetna Senior Supplemental | `aetna senior supplemental commission schedule.pdf` (rev. 07/23/2026, BRKPRDXX2_12) — **all 9 pages** | General Agent, Level 12 |
 | Mutual of Omaha | `Mutual of Omaha Commission Schedule.pdf` (eff. 05/2026) | General Agent (BMO151) |
 | Healthspring | Loyal American Life commission schedule (eff. 04/07/2025) | GA-60 |
 | Physicians Mutual | `physicians mutual commission schedules.xlsx` | General Agent (topline street), Level 5 |
@@ -93,13 +93,32 @@ than estimating.
    established with certainty. Rather than guess, these states are left out.
    Every other ABL state block was unambiguous and is loaded.
 
-6. **Aetna — Illinois under-65 Medicare Supplement, and the Protection Series /
-   Home Care / Recovery Care legacy products.** Same problem: the state-to-rate
-   column mapping in those specific tables was not recoverable with certainty.
-   Illinois ages 65+ and 80+ are loaded; Illinois under-65 is not.
-
-7. **Healthspring — the "Level" (as opposed to "Heaped") Dental/Vision/Hearing
+6. **Healthspring — the "Level" (as opposed to "Heaped") Dental/Vision/Hearing
    variants.** Only the Heaped rates were unambiguous.
+
+## Aetna: fully transcribed
+
+The Aetna schedule was originally read through the Drive connector, which
+flattened its multi-column tables and left several sections unreadable. It has
+since been re-read from the source PDF with **word-level x/y coordinates**,
+which recovers the true column structure, and pages 6 and 8 — which are scanned
+images with no text layer — were read visually from page renders.
+
+That resolved the two previously-listed Aetna gaps and corrected one error:
+
+- **Florida Medicare Supplement, under age 65** was loaded as 24%. The correct
+  rate is **6.5%**; 24% is the age 65+ rate. This was a real error, now fixed.
+- **Illinois Medicare Supplement, under age 65** was previously omitted. It is
+  12.5% for all plans except Plan N, and 15% for Plan N.
+
+Seven products were missing entirely and are now loaded: Dental Vision and
+Hearing Flex (page 6, including Nevada's separate Dental Only and full plans),
+Home Care Plus, Home Recovery Care, Hospital Indemnity Flex, Recovery Care,
+Nursing Facility Care (HFN-97) (page 7), and Recovery Care Choice (page 8).
+
+Products on the schedule that are deliberately **not** loaded because we are not
+appointed in the only states they cover: Cancer and Heart Attack or Stroke
+(non-Plus, Kansas only) and Home Care (HC-96) (Colorado and Kentucky only).
 
 ## Flagged for spot-check
 

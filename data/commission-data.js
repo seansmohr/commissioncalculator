@@ -171,7 +171,12 @@
     {
       carrier: 'Aetna Senior Supplemental', states: ['FL'], category: 'medicare_supplement',
       product: 'Medicare Supplement - All marketed plans (incl. Plan N)',
-      rate: 0.24, note: 'Florida pays the same rate at all ages.'
+      minAge: 65, rate: 0.24
+    },
+    {
+      carrier: 'Aetna Senior Supplemental', states: ['FL'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - All marketed plans (incl. Plan N)',
+      maxAge: 64, rate: 0.065, note: 'Under age 65 rate.'
     },
 
     {
@@ -186,12 +191,22 @@
     {
       carrier: 'Aetna Senior Supplemental', states: ['IL'], category: 'medicare_supplement',
       product: 'Medicare Supplement - All plans except Plan N',
+      maxAge: 64, rate: 0.125, note: 'Under age 65 rate.'
+    },
+    {
+      carrier: 'Aetna Senior Supplemental', states: ['IL'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - All plans except Plan N',
       minAge: 65, maxAge: 79, rate: 0.25
     },
     {
       carrier: 'Aetna Senior Supplemental', states: ['IL'], category: 'medicare_supplement',
       product: 'Medicare Supplement - All plans except Plan N',
       minAge: 80, rate: 0.125, note: 'Illinois pays a reduced rate at ages 80+.'
+    },
+    {
+      carrier: 'Aetna Senior Supplemental', states: ['IL'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan N',
+      maxAge: 64, rate: 0.15, note: 'Under age 65 rate.'
     },
     {
       carrier: 'Aetna Senior Supplemental', states: ['IL'], category: 'medicare_supplement',
@@ -331,6 +346,53 @@
       note: 'No commission on policy fee or policy conversions.'
     }
   ]);
+
+  // --- Aetna Complementary Health, remaining products ------------------------
+  // Transcribed from pages 6-8 of the schedule (Dental Vision and Hearing Flex
+  // and Recovery Care Choice are scanned pages, read visually; the Protection
+  // Series / Legacy tables on page 7 were read from the PDF text layer with
+  // column coordinates and confirmed against a render of the page).
+  (function aetnaComplementaryHealth() {
+    function ah(states, product, bands, note) {
+      bands.forEach(function (b) {
+        add([{
+          carrier: 'Aetna Senior Supplemental', states: states, category: 'ancillary',
+          product: product, minAge: b[0], maxAge: b[1], rate: b[2], note: note
+        }]);
+      });
+    }
+
+    // Dental Vision and Hearing Flex (page 6). Not available in VA.
+    ah(['AZ', 'CA', 'ID', 'IL', 'LA', 'NC', 'NJ', 'OH', 'PA', 'TX'],
+      'Dental Vision and Hearing Flex', [[18, 70, 0.57], [71, 89, 0.52]]);
+    ah(['FL'], 'Dental Vision and Hearing Flex', [[18, 70, 0.47], [71, 89, 0.42]]);
+    ah(['NV'], 'Dental Vision and Hearing Flex - Dental Only',
+      [[18, 70, 0.17], [71, 89, 0.12]], 'Nevada has separate rates for the Dental Only plan.');
+    ah(['NV'], 'Dental Vision and Hearing Flex - Dental, Vision and Hearing',
+      [[18, 70, 0.26], [71, 89, 0.21]], 'Nevada has separate rates for the full Dental, Vision and Hearing plan.');
+
+    // Protection Series - Home Care Plus (page 7)
+    ah(['ID', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX'], 'Home Care Plus', [[50, 89, 0.625]]);
+    ah(['AZ', 'VA'], 'Home Care Plus', [[50, 89, 0.58]]);
+
+    // Protection Series - Home Recovery Care (page 7). Texas only.
+    ah(['TX'], 'Home Recovery Care', [[50, 89, 0.625]]);
+
+    // Protection Series - Hospital Indemnity Flex (page 7)
+    ah(['CA', 'ID', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX'], 'Hospital Indemnity Flex', [[18, 89, 0.625]]);
+    ah(['AZ', 'FL', 'VA'], 'Hospital Indemnity Flex', [[18, 89, 0.58]]);
+    ah(['NJ'], 'Hospital Indemnity Flex', [[18, 89, 0.58]]);
+
+    // Protection Series - Recovery Care (page 7)
+    ah(['ID', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], 'Recovery Care', [[50, 89, 0.625]]);
+    ah(['AZ'], 'Recovery Care', [[50, 89, 0.58]]);
+
+    // Legacy - Nursing Facility Care (HFN-97) (page 7). Pennsylvania only.
+    ah(['PA'], 'Nursing Facility Care (HFN-97)', [[50, 89, 0.625]]);
+
+    // Recovery Care Choice (page 8). Not available in CA, FL, ID, NJ, PA or VA.
+    ah(['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'TX'], 'Recovery Care Choice', [[40, 89, 0.625]]);
+  }());
 
   // ===========================================================================
   // MUTUAL OF OMAHA - 12 month advance (health products)

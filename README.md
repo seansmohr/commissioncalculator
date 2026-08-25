@@ -117,8 +117,11 @@ spreadsheet, unstated in the schedule). For Heartland the calculator shows the
 rate and total first-year commission and labels the advance "Not on file"
 rather than inventing an upfront figure.
 
-A handful of individual state blocks were also left out where the source PDF's
-layout made the state-to-rate mapping ambiguous. All of it is listed in
+**Aetna Senior Supplemental is complete** — all 17 products across our 13
+appointed states, read from all 9 pages of the schedule.
+
+A few individual state blocks from other carriers were left out where the source
+PDF's layout made the state-to-rate mapping ambiguous. All of it is listed in
 [`data/SOURCES.md`](data/SOURCES.md).
 
 ## Adding or fixing rates

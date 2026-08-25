@@ -341,6 +341,97 @@ test('Heartland ancillary rates split by state group', function () {
   close(engine.findRule('Heartland', 'FL', p, 86).rate, 0.45, 'FL 85-90');
 });
 
+console.log('\nAetna schedule (full document, 07/23/2026)');
+
+test('Florida Medicare Supplement pays a different rate under 65', function () {
+  var p = 'Medicare Supplement - All marketed plans (incl. Plan N)';
+  close(engine.findRule('Aetna Senior Supplemental', 'FL', p, 70).rate, 0.24, 'FL age 70');
+  close(engine.findRule('Aetna Senior Supplemental', 'FL', p, 60).rate, 0.065, 'FL age 60');
+});
+
+test('Illinois Medicare Supplement has three age bands per plan', function () {
+  var other = 'Medicare Supplement - All plans except Plan N';
+  var planN = 'Medicare Supplement - Plan N';
+  close(engine.findRule('Aetna Senior Supplemental', 'IL', other, 60).rate, 0.125, 'IL non-N under 65');
+  close(engine.findRule('Aetna Senior Supplemental', 'IL', other, 70).rate, 0.25, 'IL non-N 65-79');
+  close(engine.findRule('Aetna Senior Supplemental', 'IL', other, 82).rate, 0.125, 'IL non-N 80+');
+  close(engine.findRule('Aetna Senior Supplemental', 'IL', planN, 60).rate, 0.15, 'IL Plan N under 65');
+  close(engine.findRule('Aetna Senior Supplemental', 'IL', planN, 70).rate, 0.30, 'IL Plan N 65-79');
+  close(engine.findRule('Aetna Senior Supplemental', 'IL', planN, 82).rate, 0.15, 'IL Plan N 80+');
+});
+
+test('Dental Vision and Hearing Flex is distinct from the other two DVH products', function () {
+  var products = engine.getProducts('Aetna Senior Supplemental', 'TX');
+  ['Dental, Vision and Hearing', 'Dental, Vision and Hearing Plus', 'Dental Vision and Hearing Flex']
+    .forEach(function (p) {
+      assert.ok(products.indexOf(p) !== -1, 'TX should offer ' + p);
+    });
+  close(engine.findRule('Aetna Senior Supplemental', 'TX', 'Dental Vision and Hearing Flex', 60).rate, 0.57, 'DVH Flex 18-70');
+  close(engine.findRule('Aetna Senior Supplemental', 'TX', 'Dental Vision and Hearing Flex', 75).rate, 0.52, 'DVH Flex 71-89');
+  close(engine.findRule('Aetna Senior Supplemental', 'FL', 'Dental Vision and Hearing Flex', 60).rate, 0.47, 'FL DVH Flex 18-70');
+});
+
+test('Nevada splits DVH Flex into Dental Only and full plans', function () {
+  var products = engine.getProducts('Aetna Senior Supplemental', 'NV');
+  assert.ok(products.indexOf('Dental Vision and Hearing Flex - Dental Only') !== -1);
+  assert.ok(products.indexOf('Dental Vision and Hearing Flex - Dental, Vision and Hearing') !== -1);
+  assert.ok(products.indexOf('Dental Vision and Hearing Flex') === -1, 'NV should not offer the generic DVH Flex');
+  close(engine.findRule('Aetna Senior Supplemental', 'NV', 'Dental Vision and Hearing Flex - Dental Only', 60).rate, 0.17, 'NV dental only');
+  close(engine.findRule('Aetna Senior Supplemental', 'NV', 'Dental Vision and Hearing Flex - Dental, Vision and Hearing', 60).rate, 0.26, 'NV full plan');
+});
+
+test('DVH Flex is not offered in Virginia', function () {
+  var products = engine.getProducts('Aetna Senior Supplemental', 'VA');
+  assert.ok(!products.some(function (p) { return p.indexOf('Dental Vision and Hearing Flex') === 0; }),
+    'VA is not on the DVH Flex schedule');
+});
+
+test('Protection Series products split by state group', function () {
+  close(engine.findRule('Aetna Senior Supplemental', 'TX', 'Home Care Plus', 60).rate, 0.625, 'TX Home Care Plus');
+  close(engine.findRule('Aetna Senior Supplemental', 'AZ', 'Home Care Plus', 60).rate, 0.58, 'AZ Home Care Plus');
+  close(engine.findRule('Aetna Senior Supplemental', 'CA', 'Hospital Indemnity Flex', 60).rate, 0.625, 'CA Hospital Indemnity Flex');
+  close(engine.findRule('Aetna Senior Supplemental', 'NJ', 'Hospital Indemnity Flex', 60).rate, 0.58, 'NJ Hospital Indemnity Flex');
+  close(engine.findRule('Aetna Senior Supplemental', 'VA', 'Recovery Care', 60).rate, 0.625, 'VA Recovery Care');
+  close(engine.findRule('Aetna Senior Supplemental', 'AZ', 'Recovery Care', 60).rate, 0.58, 'AZ Recovery Care');
+});
+
+test('single-state Protection Series products are offered only in that state', function () {
+  assert.ok(engine.getProducts('Aetna Senior Supplemental', 'TX').indexOf('Home Recovery Care') !== -1,
+    'Home Recovery Care is a Texas-only table');
+  assert.ok(engine.getProducts('Aetna Senior Supplemental', 'PA').indexOf('Home Recovery Care') === -1);
+  assert.ok(engine.getProducts('Aetna Senior Supplemental', 'PA').indexOf('Nursing Facility Care (HFN-97)') !== -1,
+    'Nursing Facility Care is a Pennsylvania-only table');
+  assert.ok(engine.getProducts('Aetna Senior Supplemental', 'TX').indexOf('Nursing Facility Care (HFN-97)') === -1);
+});
+
+test('Recovery Care Choice covers only its listed states', function () {
+  close(engine.findRule('Aetna Senior Supplemental', 'TX', 'Recovery Care Choice', 60).rate, 0.625, 'TX');
+  ['CA', 'FL', 'ID', 'NJ', 'PA', 'VA'].forEach(function (st) {
+    assert.ok(engine.getProducts('Aetna Senior Supplemental', st).indexOf('Recovery Care Choice') === -1,
+      st + ' is not on the Recovery Care Choice schedule');
+  });
+});
+
+test('Protection Series age floors are enforced', function () {
+  // Home Care Plus / Recovery Care are issue ages 50-89; Recovery Care Choice 40-89.
+  assert.strictEqual(engine.findRule('Aetna Senior Supplemental', 'TX', 'Home Care Plus', 45), null);
+  assert.strictEqual(engine.findRule('Aetna Senior Supplemental', 'TX', 'Recovery Care Choice', 35), null);
+  assert.ok(engine.findRule('Aetna Senior Supplemental', 'TX', 'Recovery Care Choice', 45));
+});
+
+test('every Aetna complementary health product uses the 12 month advance', function () {
+  ['Home Care Plus', 'Hospital Indemnity Flex', 'Recovery Care', 'Recovery Care Choice',
+   'Dental Vision and Hearing Flex'].forEach(function (product) {
+    var r = engine.calculate({
+      carrier: 'Aetna Senior Supplemental', state: 'TX',
+      product: product, age: 60, monthlyPremium: 100
+    });
+    assert.ok(r.found, product + ' should resolve in TX');
+    assert.strictEqual(r.advanceMonths, 12, product + ' should use the 12 month advance');
+    close(r.upfrontCommission, r.totalFirstYearCommission, product + ' upfront equals full first year');
+  });
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {
