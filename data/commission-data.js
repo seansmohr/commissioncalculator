@@ -396,50 +396,45 @@
 
   // ===========================================================================
   // MUTUAL OF OMAHA - 12 month advance (health products)
-  // Only the Long Term Care schedule was recoverable from the linked PDF.
+  //
+  // The schedule PDF contains only the Long Term Care compensation schedule
+  // (MT0044_0526, MUTUAL LONG TERM CARE MC8). Our Mutual of Omaha appointments
+  // are CA, PA and VA. California has its own policy form (LTC09M-CA);
+  // Pennsylvania has its own table with two variants; Virginia falls under the
+  // National table.
   // ===========================================================================
-  add([
-    {
-      carrier: 'Mutual of Omaha', states: ['CA'], category: 'long_term_care',
-      product: 'Long Term Care - Individual (new business)', maxAge: 69, rate: 0.60
-    },
-    {
-      carrier: 'Mutual of Omaha', states: ['CA'], category: 'long_term_care',
-      product: 'Long Term Care - Individual (new business)', minAge: 70, maxAge: 74, rate: 0.40
-    },
-    {
-      carrier: 'Mutual of Omaha', states: ['CA'], category: 'long_term_care',
-      product: 'Long Term Care - Individual (new business)', minAge: 75, maxAge: 79, rate: 0.35
-    },
-    {
-      carrier: 'Mutual of Omaha', states: ['PA', 'VA'], category: 'long_term_care',
-      product: 'Long Term Care - Individual (new business)', maxAge: 69, rate: 0.60
-    },
-    {
-      carrier: 'Mutual of Omaha', states: ['PA', 'VA'], category: 'long_term_care',
-      product: 'Long Term Care - Individual (new business)', minAge: 70, maxAge: 74, rate: 0.40
-    },
-    {
-      carrier: 'Mutual of Omaha', states: ['PA', 'VA'], category: 'long_term_care',
-      product: 'Long Term Care - Individual (new business)', minAge: 75, maxAge: 79, rate: 0.35
-    },
-
-    {
-      carrier: 'Mutual of Omaha', states: ['CA', 'PA', 'VA'], category: 'long_term_care',
-      product: 'Long Term Care - Association / Sponsored Group / Common Employer (new business)',
-      maxAge: 69, rate: 0.55
-    },
-    {
-      carrier: 'Mutual of Omaha', states: ['CA', 'PA', 'VA'], category: 'long_term_care',
-      product: 'Long Term Care - Association / Sponsored Group / Common Employer (new business)',
-      minAge: 70, maxAge: 74, rate: 0.35
-    },
-    {
-      carrier: 'Mutual of Omaha', states: ['CA', 'PA', 'VA'], category: 'long_term_care',
-      product: 'Long Term Care - Association / Sponsored Group / Common Employer (new business)',
-      minAge: 75, maxAge: 79, rate: 0.30
+  (function mutualOfOmaha() {
+    function ltc(states, product, bands, note) {
+      bands.forEach(function (b) {
+        add([{
+          carrier: 'Mutual of Omaha', states: states, category: 'long_term_care',
+          product: product, minAge: b[0], maxAge: b[1], rate: b[2], note: note
+        }]);
+      });
     }
-  ]);
+
+    // California (policy form LTC09M-CA) and Virginia (National) pay the same
+    // new-business rates.
+    ltc(['CA', 'VA'], 'Long Term Care - Individual (new business)',
+      [[null, 69, 0.60], [70, 74, 0.40], [75, 79, 0.35]]);
+    ltc(['CA', 'VA'], 'Long Term Care - Association / Sponsored Group / Common Employer (new business)',
+      [[null, 69, 0.55], [70, 74, 0.35], [75, 79, 0.30]]);
+
+    // Pennsylvania pays two different new-business scales depending on whether
+    // the writing General Agent has other General Agents in their downline.
+    // Both are listed so the correct one can be chosen rather than assumed.
+    var withDownline = 'Pennsylvania rate for a writing General Agent who HAS other General Agents reporting to them in their downline distribution.';
+    var noDownline = 'Pennsylvania rate for a writing General Agent who does NOT have other General Agents reporting to them in their downline distribution.';
+
+    ltc(['PA'], 'Long Term Care - Individual (new business, with downline General Agents)',
+      [[null, 69, 0.60], [70, 74, 0.40], [75, 79, 0.35]], withDownline);
+    ltc(['PA'], 'Long Term Care - Association / Sponsored Group / Common Employer (new business, with downline General Agents)',
+      [[null, 69, 0.55], [70, 74, 0.35], [75, 79, 0.30]], withDownline);
+    ltc(['PA'], 'Long Term Care - Individual (new business, no downline General Agents)',
+      [[null, 69, 0.50], [70, 74, 0.30], [75, 79, 0.25]], noDownline);
+    ltc(['PA'], 'Long Term Care - Association / Sponsored Group / Common Employer (new business, no downline General Agents)',
+      [[null, 69, 0.45], [70, 74, 0.25], [75, 79, 0.20]], noDownline);
+  }());
 
   // ===========================================================================
   // HEALTHSPRING (Loyal American Life) - GA-60 - 12 month advance
@@ -553,6 +548,65 @@
       product: 'Flexible Choice Cancer / Heart Attack & Stroke / Cancer Treatment', rate: 0.50
     },
 
+    // --- Dental, Vision, Hearing: Level variant (all years, no heaping) ------
+    {
+      carrier: 'Healthspring', states: ['AZ', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+      product: 'Dental, Vision, Hearing (Level)', minAge: 18, maxAge: 89, rate: 0.15,
+      note: 'Level plan pays the same rate in all policy years.'
+    },
+    {
+      carrier: 'Healthspring', states: ['CA'], category: 'ancillary',
+      product: 'Dental, Vision, Hearing (Level)', minAge: 18, maxAge: 89, rate: 0.08,
+      note: 'Level plan pays the same rate in all policy years.'
+    },
+    {
+      carrier: 'Healthspring', states: ['NV'], category: 'ancillary',
+      product: 'Dental, Vision, Hearing (Level)', minAge: 18, maxAge: 89, rate: 0.05,
+      note: 'Level plan pays the same rate in all policy years.'
+    },
+
+    // --- Flexible Choice Hospital Indemnity Riders ---------------------------
+    // Not available in CA, CT, DC, ID, MA, NH, NJ, NY or UT.
+    {
+      carrier: 'Healthspring', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+      product: 'Flexible Choice Hospital Indemnity - Accident Rider', rate: 0.45
+    },
+    {
+      carrier: 'Healthspring', states: ['FL'], category: 'ancillary',
+      product: 'Flexible Choice Hospital Indemnity - Accident Rider', rate: 0.45
+    },
+    {
+      carrier: 'Healthspring', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+      product: 'Flexible Choice Hospital Indemnity - Lump Sum Heart, Stroke and Restoration Rider', rate: 0.60
+    },
+    {
+      carrier: 'Healthspring', states: ['FL'], category: 'ancillary',
+      product: 'Flexible Choice Hospital Indemnity - Lump Sum Heart, Stroke and Restoration Rider', rate: 0.55
+    },
+    {
+      carrier: 'Healthspring', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+      product: 'Flexible Choice Hospital Indemnity - Lump Sum Cancer Recurrence Rider', rate: 0.60
+    },
+    {
+      carrier: 'Healthspring', states: ['FL'], category: 'ancillary',
+      product: 'Flexible Choice Hospital Indemnity - Lump Sum Cancer Recurrence Rider', rate: 0.55
+    },
+    {
+      carrier: 'Healthspring', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
+      product: 'Flexible Choice Hospital Indemnity - Specified Disease Rider', rate: 0.55
+    },
+    {
+      carrier: 'Healthspring', states: ['FL'], category: 'ancillary',
+      product: 'Flexible Choice Hospital Indemnity - Specified Disease Rider', rate: 0.55
+    },
+
+    // --- Return of Premium Rider ---------------------------------------------
+    {
+      carrier: 'Healthspring', states: ALL, category: 'ancillary',
+      product: 'Return of Premium Rider (on selected products)', rate: 0.50,
+      note: 'Pays first year only; renewal years are 0%.'
+    },
+
     // --- Whole Life ----------------------------------------------------------
     {
       carrier: 'Healthspring', states: ALL, category: 'life',
@@ -626,8 +680,18 @@
     },
 
     {
+      carrier: 'Physicians Mutual', states: ALL, category: 'medicare_supplement',
+      product: 'Medicare Supplement (Medigap) - Internal Replacement', rate: 0.125,
+      note: 'Internal replacements pay a reduced rate at every age.'
+    },
+
+    {
       carrier: 'Physicians Mutual', states: ALL, category: 'ancillary',
       product: 'Dental (P154 / C254) - Standard', rate: 0.25
+    },
+    {
+      carrier: 'Physicians Mutual', states: ALL, category: 'ancillary',
+      product: 'Dental (P154 / C254) - Internal Replacement', rate: 0.05
     },
 
     {

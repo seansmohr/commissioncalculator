@@ -9,9 +9,9 @@ published rates are used anywhere.
 | Carrier | Schedule read | Our contract level |
 |---|---|---|
 | Aetna Senior Supplemental | `aetna senior supplemental commission schedule.pdf` (rev. 07/23/2026, BRKPRDXX2_12) — **all 9 pages** | General Agent, Level 12 |
-| Mutual of Omaha | `Mutual of Omaha Commission Schedule.pdf` (eff. 05/2026) | General Agent (BMO151) |
-| Healthspring | Loyal American Life commission schedule (eff. 04/07/2025) | GA-60 |
-| Physicians Mutual | `physicians mutual commission schedules.xlsx` | General Agent (topline street), Level 5 |
+| Mutual of Omaha | `Mutual of Omaha Commission Schedule.pdf` (MT0044_0526, eff. 05/01/2026) — **all 16 pages** | General Agent (BMO151) |
+| Healthspring | Loyal American Life commission schedule (eff. 04/07/2025) — **all 5 pages** | GA-60 |
+| Physicians Mutual | `physicians mutual commission schedules.xlsx` — **all sheets, confirmed against screenshots** | General Agent (topline street), Level 5 |
 | Manhattan Life | `manhattan life commission schedule` (JU Level 5, 2-2026) | MGA |
 | Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (eff. 05/01/2026) | GA 8 |
 | American Benefit Life | `American Benefit Life Commission Schedule.pdf` (eff. 11/01/2025) | GA 10 |
@@ -51,11 +51,12 @@ than estimating.
    spreadsheet's 9-month advance for GTL is already recorded; only the rates are
    missing. **A PDF version, or the rates pasted as text, is all that's needed.**
 
-2. **Mutual of Omaha — everything except Long Term Care.** The linked PDF is
-   complete (it ends cleanly at "Page 8 of 8" of the Long Term Care schedule),
-   but it *only contains* the Long Term Care compensation schedule. The Contract
-   Summary inside it lists seven other schedules on our contract that are not in
-   the file:
+2. **Mutual of Omaha — everything except Long Term Care.** The schedule PDF was
+   re-supplied in full (16 pages) and confirmed: it contains the cover letter,
+   the producer FAQ, the Contract Summary and then the Long Term Care schedule
+   (MT0044_0526, "Page 1 of 8" through "Page 8 of 8"). No page is a scan hiding
+   further tables. The Contract Summary lists seven other schedules on our
+   contract whose rate documents are simply **not in this file**:
 
    | Product | Schedule code |
    |---|---|
@@ -67,9 +68,10 @@ than estimating.
    | Dental Savings | K73.001 |
    | Hospital Indemnity | V09.001 |
 
-   Note the schedule states a **9-month** advance applies to the Accidental Death
-   product specifically, versus 12 months for other Mutual of Omaha health
-   products — so that product needs its own advance entry once rates arrive.
+   Each is a separate document on Sales Professional Access (Profile →
+   Communications → commission schedules). Note the Accidental Death product
+   carries a **9-month** advance versus 12 months for other Mutual of Omaha
+   health products, so it needs its own advance entry once rates arrive.
 
 3. **Heartland — advance term unknown.** Rates are loaded, but the spreadsheet
    leaves the advance column blank for Heartland and the schedule never states a
@@ -93,8 +95,47 @@ than estimating.
    established with certainty. Rather than guess, these states are left out.
    Every other ABL state block was unambiguous and is loaded.
 
-6. **Healthspring — the "Level" (as opposed to "Heaped") Dental/Vision/Hearing
-   variants.** Only the Heaped rates were unambiguous.
+## Carriers read from the full source PDF
+
+Where a carrier's schedule has been supplied directly as a PDF, it is re-read
+from the source using **word-level x/y coordinates**, which recovers the true
+column structure that flat text extraction destroys. Scanned pages with no text
+layer are read visually from page renders. This is how the Aetna, Mutual of
+Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
+right way to add the remaining carriers.
+
+### Healthspring — now complete
+
+Confirmed against all 5 pages. The previously-flagged "Level" Dental/Vision/
+Hearing gap is resolved (15% all states, 8% CA, 5% NV), and three product
+families that were missing are now loaded: the **Flexible Choice Hospital
+Indemnity riders** (Accident, Lump Sum Heart/Stroke/Restoration, Lump Sum Cancer
+Recurrence, Specified Disease — not available in CA, ID or NJ among our states)
+and the **Return of Premium rider**. California Medicare Supplement, Whole Life
+and every other previously-loaded rate were verified unchanged.
+
+### Physicians Mutual — verified
+
+All rates confirmed against the Level 5 / General Agent (topline street) column.
+Nothing was wrong. Two products were added: **Medigap Internal Replacement**
+(12.5%) and **Dental Internal Replacement** (5%), both of which pay materially
+less than new business.
+
+### Mutual of Omaha — Pennsylvania needs a decision
+
+Pennsylvania Long Term Care has **two different new-business scales** depending
+on whether the writing General Agent has other General Agents in their downline:
+
+| | Under 70 | 70-74 | 75-79 |
+|---|---|---|---|
+| With downline General Agents | 60% | 40% | 35% |
+| No downline General Agents | 50% | 30% | 25% |
+
+Which one applies to Mohr Insurance Services is a fact about our contract, not
+something in the schedule, so both are loaded as separate products rather than
+one being assumed. **Once confirmed, the other should be deleted** so the
+Pennsylvania dropdown has a single entry. California and Virginia have no such
+split and were verified correct.
 
 ## Aetna: fully transcribed
 

@@ -432,6 +432,94 @@ test('every Aetna complementary health product uses the 12 month advance', funct
   });
 });
 
+console.log('\nMutual of Omaha, Healthspring, Physicians Mutual (full PDFs)');
+
+test('Mutual of Omaha Long Term Care age bands, CA and VA', function () {
+  var p = 'Long Term Care - Individual (new business)';
+  ['CA', 'VA'].forEach(function (st) {
+    close(engine.findRule('Mutual of Omaha', st, p, 65).rate, 0.60, st + ' under 70');
+    close(engine.findRule('Mutual of Omaha', st, p, 72).rate, 0.40, st + ' 70-74');
+    close(engine.findRule('Mutual of Omaha', st, p, 77).rate, 0.35, st + ' 75-79');
+    assert.strictEqual(engine.findRule('Mutual of Omaha', st, p, 82), null, st + ' has no rate above 79');
+  });
+});
+
+test('Pennsylvania Long Term Care keeps both downline variants distinct', function () {
+  var withD = 'Long Term Care - Individual (new business, with downline General Agents)';
+  var noD = 'Long Term Care - Individual (new business, no downline General Agents)';
+  var products = engine.getProducts('Mutual of Omaha', 'PA');
+  assert.ok(products.indexOf(withD) !== -1);
+  assert.ok(products.indexOf(noD) !== -1);
+  close(engine.findRule('Mutual of Omaha', 'PA', withD, 65).rate, 0.60, 'PA with downline');
+  close(engine.findRule('Mutual of Omaha', 'PA', noD, 65).rate, 0.50, 'PA no downline');
+  // The undifferentiated product must not exist in PA - it would hide the choice.
+  assert.ok(products.indexOf('Long Term Care - Individual (new business)') === -1);
+});
+
+test('Mutual of Omaha is only offered where we hold an appointment', function () {
+  var states = engine.getStates('Mutual of Omaha').map(function (s) { return s.code; }).sort();
+  assert.deepStrictEqual(states, ['CA', 'PA', 'VA']);
+});
+
+test('Healthspring Dental Vision Hearing has both Heaped and Level variants', function () {
+  var products = engine.getProducts('Healthspring', 'TX');
+  assert.ok(products.indexOf('Dental, Vision, Hearing (Heaped)') !== -1);
+  assert.ok(products.indexOf('Dental, Vision, Hearing (Level)') !== -1);
+  close(engine.findRule('Healthspring', 'TX', 'Dental, Vision, Hearing (Heaped)', 60).rate, 0.55, 'TX heaped');
+  close(engine.findRule('Healthspring', 'TX', 'Dental, Vision, Hearing (Level)', 60).rate, 0.15, 'TX level');
+  close(engine.findRule('Healthspring', 'CA', 'Dental, Vision, Hearing (Level)', 60).rate, 0.08, 'CA level');
+  close(engine.findRule('Healthspring', 'NV', 'Dental, Vision, Hearing (Level)', 60).rate, 0.05, 'NV level');
+});
+
+test('Healthspring Flexible Choice HI riders are excluded where the schedule says so', function () {
+  var rider = 'Flexible Choice Hospital Indemnity - Accident Rider';
+  assert.ok(engine.getProducts('Healthspring', 'TX').indexOf(rider) !== -1, 'TX offers the riders');
+  ['CA', 'ID', 'NJ'].forEach(function (st) {
+    assert.ok(engine.getProducts('Healthspring', st).indexOf(rider) === -1,
+      st + ' is on the not-available list for these riders');
+  });
+  close(engine.findRule('Healthspring', 'TX', 'Flexible Choice Hospital Indemnity - Lump Sum Cancer Recurrence Rider', 60).rate, 0.60, 'TX LSCR');
+  close(engine.findRule('Healthspring', 'FL', 'Flexible Choice Hospital Indemnity - Lump Sum Cancer Recurrence Rider', 60).rate, 0.55, 'FL LSCR');
+});
+
+test('Healthspring California Medicare Supplement rates match the schedule', function () {
+  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan A', 70).rate, 0.05, 'Plan A');
+  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plans F & G', 70).rate, 0.15, 'F&G 65-79');
+  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plans F & G', 82).rate, 0.065, 'F&G 80+');
+  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan N', 70).rate, 0.18, 'Plan N 65-79');
+  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan N', 82).rate, 0.09, 'Plan N 80+');
+});
+
+test('Healthspring Return of Premium rider is available everywhere we write', function () {
+  engine.getStates('Healthspring').forEach(function (st) {
+    close(engine.findRule('Healthspring', st.code, 'Return of Premium Rider (on selected products)', 60).rate,
+      0.50, st.code + ' ROP');
+  });
+});
+
+test('Physicians Mutual internal replacements pay less than new business', function () {
+  var oe = engine.findRule('Physicians Mutual', 'TX', 'Medicare Supplement (Medigap) - Open Enrollment', 70);
+  var ir = engine.findRule('Physicians Mutual', 'TX', 'Medicare Supplement (Medigap) - Internal Replacement', 70);
+  close(oe.rate, 0.21, 'open enrollment');
+  close(ir.rate, 0.125, 'internal replacement');
+
+  close(engine.findRule('Physicians Mutual', 'TX', 'Dental (P154 / C254) - Standard', 60).rate, 0.25, 'dental standard');
+  close(engine.findRule('Physicians Mutual', 'TX', 'Dental (P154 / C254) - Internal Replacement', 60).rate, 0.05, 'dental replacement');
+});
+
+test('Physicians Mutual life rates match the Level 5 street column', function () {
+  var cases = [
+    ['L780 Whole Life', 1.00],
+    ['LR175 5-Year Term Rider', 0.70],
+    ['LR175 10-Year Term Rider', 0.85],
+    ['LR175 15-Year Term Rider', 0.95],
+    ['LR175 20-Year Term Rider', 1.00]
+  ];
+  cases.forEach(function (c) {
+    close(engine.findRule('Physicians Mutual', 'TX', c[0], 60).rate, c[1], c[0]);
+  });
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {
