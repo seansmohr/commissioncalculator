@@ -133,6 +133,6 @@ months are resolved separately from the `ADVANCES` table by carrier and product
 category, so a carrier with different advances per product category is handled by
 adding a `byCategory` entry rather than duplicating rates.
 
-After any edit, run `node test/engine.test.js`. The suite checks for overlapping
+After any edit, run `npm test`. The suite checks for overlapping
 age bands, unknown states, out-of-range rates, and products that appear in a
 dropdown but resolve at no age.

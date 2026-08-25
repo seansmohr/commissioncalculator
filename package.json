@@ -4,6 +4,14 @@
   "private": true,
   "description": "Insurance commission calculator for Mohr Insurance Services",
   "scripts": {
-    "test": "node test/engine.test.js"
+    "start": "node server.js",
+    "test": "node test/engine.test.js && node test/server.test.js"
+  },
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
   }
 }

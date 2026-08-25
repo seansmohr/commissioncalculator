@@ -7,9 +7,27 @@ instead of opening carrier PDFs on every sale.
 
 ## Running it
 
-Open `index.html` in a browser. That's the whole install — no server, no build
-step, no dependencies. It works from a local file, a shared drive, or any static
-host.
+Open `index.html` in a browser. That's the whole install — no build step, no
+dependencies. It works from a local file, a shared drive, or any static host.
+
+To serve it over HTTP instead:
+
+```
+npm start          # http://localhost:3000
+```
+
+`server.js` is a zero-dependency static file server that listens on `$PORT`
+(default 3000) and binds `0.0.0.0`, which is what platform hosts expect.
+
+### Deploying
+
+Railway, Render, Fly and Heroku all work with no configuration: they detect
+Node, find the `start` script, and run it. `/healthz` returns `200 ok` for
+health checks.
+
+Railway note: Railpack looks for a start command and fails the build without
+one, which is why `server.js` and the `start` script exist even though the page
+itself is static.
 
 ## How it works
 
@@ -69,18 +87,21 @@ saying so — that's a real contracted rate, not a missing lookup.
 | `engine.js` | Lookup and math — no DOM, shared with the tests |
 | `data/commission-data.js` | The normalized commission rule table |
 | `data/SOURCES.md` | Which schedule each rate came from, plus known gaps |
-| `test/engine.test.js` | Test suite |
+| `server.js` | Zero-dependency static server for deployment |
+| `test/engine.test.js` | Lookup and calculation tests |
+| `test/server.test.js` | Static server smoke tests |
 
 ## Tests
 
 ```
-node test/engine.test.js
+npm test
 ```
 
 Covers the 12/9/6/no-advance paths, age-band and Plan N selection, the
 never-guess behaviour, dropdown dependency, and data integrity checks
 (overlapping age bands, unknown states, out-of-range rates, products that appear
-in a dropdown but resolve at no age).
+in a dropdown but resolve at no age), plus static-server smoke tests including
+the asset allowlist and path-traversal handling.
 
 ## Data coverage
 
@@ -104,4 +125,7 @@ layout made the state-to-rate mapping ambiguous. All of it is listed in
 
 Edit `data/commission-data.js` — it's a plain list of rule objects, each with
 carrier, states, category, product, age range, rate, and any exception note.
-Then run the tests. See `data/SOURCES.md` for the conventions.
+Then run `npm test`. See `data/SOURCES.md` for the conventions.
+
+If you add a new file the page loads, add it to the `ALLOWED` list in
+`server.js` — the server serves an explicit allowlist, not the whole directory.
