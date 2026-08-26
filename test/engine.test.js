@@ -520,6 +520,68 @@ test('Physicians Mutual life rates match the Level 5 street column', function ()
   });
 });
 
+console.log('\nManhattan Life (scanned schedule, read visually)');
+
+test('Short Term Care state bands match the schedule', function () {
+  var p = 'Short Term Care';
+  // Top band: AK, AL, AR, DC, DE, GA, HI, IA, ID, IL, KS, LA, MA, MD, ME, MO,
+  // MS, NC, NH, NM, NV, OR, PA, TX, UT, WI, WV, WY
+  ['ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX'].forEach(function (st) {
+    close(engine.findRule('Manhattan Life', st, p, 60).rate, 0.60, st + ' ages 45-79');
+    close(engine.findRule('Manhattan Life', st, p, 82).rate, 0.50, st + ' ages 80+');
+  });
+  // Second band: AZ, FL, IN, MT, NE, OH, SC, TN, VA
+  ['AZ', 'FL', 'OH', 'VA'].forEach(function (st) {
+    close(engine.findRule('Manhattan Life', st, p, 60).rate, 0.525, st + ' ages 45-79');
+    close(engine.findRule('Manhattan Life', st, p, 82).rate, 0.35, st + ' ages 80+');
+  });
+  // MN, NJ, RI band
+  close(engine.findRule('Manhattan Life', 'NJ', p, 60).rate, 0.30, 'NJ ages 45-79');
+  close(engine.findRule('Manhattan Life', 'NJ', p, 82).rate, 0.22, 'NJ ages 80+');
+  // California is on no Short Term Care band.
+  assert.ok(engine.getProducts('Manhattan Life', 'CA').indexOf(p) === -1,
+    'CA is not on any Short Term Care band');
+});
+
+test('Short Term Care has an age floor of 45', function () {
+  assert.strictEqual(engine.findRule('Manhattan Life', 'TX', 'Short Term Care', 40), null);
+  assert.ok(engine.findRule('Manhattan Life', 'TX', 'Short Term Care', 45));
+});
+
+test('Florida-only rates override the general rate', function () {
+  close(engine.findRule('Manhattan Life', 'TX', 'Affordable Choice', 60).rate, 0.32, 'TX Affordable Choice');
+  close(engine.findRule('Manhattan Life', 'FL', 'Affordable Choice', 60).rate, 0.28, 'FL Affordable Choice');
+  close(engine.findRule('Manhattan Life', 'TX', 'Out-Of-Pocket Protection Plan', 60).rate, 0.35, 'TX OOP');
+  close(engine.findRule('Manhattan Life', 'FL', 'Out-Of-Pocket Protection Plan', 60).rate, 0.275, 'FL OOP');
+  var cancer = 'CP4000 CancerCare / Cancer Express / FOB First Diagnosis and Riders';
+  close(engine.findRule('Manhattan Life', 'TX', cancer, 60).rate, 0.55, 'TX cancer');
+  close(engine.findRule('Manhattan Life', 'FL', cancer, 60).rate, 0.475, 'FL cancer');
+});
+
+test('24 Hour Accident excludes Arizona from the general rate', function () {
+  close(engine.findRule('Manhattan Life', 'TX', '24 Hour Accident', 60).rate, 0.35, 'TX');
+  close(engine.findRule('Manhattan Life', 'AZ', '24 Hour Accident', 60).rate, 0.325, 'AZ has its own rate');
+});
+
+test('Hospital Indemnity Select is all states with two age bands', function () {
+  engine.getStates('Manhattan Life').forEach(function (st) {
+    close(engine.findRule('Manhattan Life', st.code, 'Hospital Indemnity Select', 60).rate, 0.63, st.code + ' 18-79');
+    close(engine.findRule('Manhattan Life', st.code, 'Hospital Indemnity Select', 82).rate, 0.475, st.code + ' 80+');
+  });
+});
+
+test('every Manhattan Life product is as-earned with no advance', function () {
+  var r = engine.calculate({
+    carrier: 'Manhattan Life', state: 'NV',
+    product: 'Short Term Care', age: 60, monthlyPremium: 120
+  });
+  assert.ok(r.found);
+  assert.strictEqual(r.advanceMonths, 0);
+  assert.strictEqual(r.paymentMethod, 'as-earned');
+  close(r.monthlyCommission, 72, 'monthly commission');
+  close(r.totalFirstYearCommission, 864, 'total first year');
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {

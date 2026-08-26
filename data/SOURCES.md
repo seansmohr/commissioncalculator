@@ -12,7 +12,7 @@ published rates are used anywhere.
 | Mutual of Omaha | `Mutual of Omaha Commission Schedule.pdf` (MT0044_0526, eff. 05/01/2026) — **all 16 pages** | General Agent (BMO151) |
 | Healthspring | Loyal American Life commission schedule (eff. 04/07/2025) — **all 5 pages** | GA-60 |
 | Physicians Mutual | `physicians mutual commission schedules.xlsx` — **all sheets, confirmed against screenshots** | General Agent (topline street), Level 5 |
-| Manhattan Life | `manhattan life commission schedule` (JU Level 5, 2-2026) | MGA |
+| Manhattan Life | `manhattan life commission schedule` (JU Level 5, 2-2026) — **all 4 pages, scanned; read visually** | MGA |
 | Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (eff. 05/01/2026) | GA 8 |
 | American Benefit Life | `American Benefit Life Commission Schedule.pdf` (eff. 11/01/2025) | GA 10 |
 | Liberty Bankers | `Liberty Bankers Commission Schedules` (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
@@ -120,6 +120,19 @@ All rates confirmed against the Level 5 / General Agent (topline street) column.
 Nothing was wrong. Two products were added: **Medigap Internal Replacement**
 (12.5%) and **Dental Internal Replacement** (5%), both of which pay materially
 less than new business.
+
+### Manhattan Life — verified, one state fixed
+
+All 4 pages of this schedule are **scanned images with no text layer at all**,
+so coordinate extraction does not apply; the pages were read visually from
+renders. Every flat rate on the Health and Disability Products table, the
+Florida-only variants, the Arizona 24 Hour Accident rate and Hospital Indemnity
+Select were confirmed correct.
+
+One error was found and fixed: **Nevada belongs in the top Short Term Care band**
+(60% ages 45-79, 50% ages 80+). It had been dropped when the state list was
+first transcribed, so Nevada Short Term Care returned "not found" instead of a
+rate. Every other Short Term Care band was correct.
 
 ### Mutual of Omaha — Pennsylvania needs a decision
 

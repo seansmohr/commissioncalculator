@@ -109,9 +109,9 @@ Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life, Bankers
 Fidelity, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
 Mutual of Omaha (Long Term Care only), Physicians Mutual.
 
-Read from the full source PDF and complete: **Aetna Senior Supplemental**,
-**Healthspring**, **Physicians Mutual**, and **Mutual of Omaha** (for the Long
-Term Care schedule, which is all that schedule contains).
+Read from the full source and complete: **Aetna Senior Supplemental**,
+**Healthspring**, **Physicians Mutual**, **Manhattan Life**, and **Mutual of
+Omaha** (for the Long Term Care schedule, which is all that schedule contains).
 
 Not loaded: **GTL** — its schedule is a PNG image whose data can't be retrieved
 intact, so there are no rates to transcribe.

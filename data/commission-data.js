@@ -785,11 +785,11 @@
 
       // Short Term Care - state bands
       {
-        carrier: 'Manhattan Life', states: ['ID', 'IL', 'LA', 'NC', 'PA', 'TX'], category: 'ancillary',
+        carrier: 'Manhattan Life', states: ['ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX'], category: 'ancillary',
         product: 'Short Term Care', minAge: 45, maxAge: 79, rate: 0.60
       },
       {
-        carrier: 'Manhattan Life', states: ['ID', 'IL', 'LA', 'NC', 'PA', 'TX'], category: 'ancillary',
+        carrier: 'Manhattan Life', states: ['ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX'], category: 'ancillary',
         product: 'Short Term Care', minAge: 80, rate: 0.50
       },
       {
