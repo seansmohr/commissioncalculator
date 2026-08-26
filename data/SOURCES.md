@@ -16,8 +16,8 @@ published rates are used anywhere.
 | Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (TERBRKXX01_08, eff. 05/01/2026) — **all 4 pages** | GA 8 |
 | American Benefit Life | `American Benefit Life Commission Schedule.pdf` (ABLBRKMS1_10, eff. 11/01/2025) — **all 3 pages** | GA 10 |
 | Liberty Bankers | `Liberty Bankers Commission Schedules` — **all 5 pages** (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
-| Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) | MGA Level 4 |
-| Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) | General Agent |
+| Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) — **all 12 pages** | MGA Level 4 |
+| Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) — **all 5 pages** | General Agent |
 | GTL | "GTL Commission Rates" panel from the carrier portal (screenshot) | not stated on the panel |
 | Heartland | `heartland commission schedules` — **all 10 pages** (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Secure Advantage Flex form 93017; Short-Term Home Health Care rev. 10/23) | GA1 |
 
@@ -117,6 +117,31 @@ All rates confirmed against the Level 5 / General Agent (topline street) column.
 Nothing was wrong. Two products were added: **Medigap Internal Replacement**
 (12.5%) and **Dental Internal Replacement** (5%), both of which pay materially
 less than new business.
+
+### Medico — verified, nothing wrong
+
+Confirmed against all 12 pages. Every Medicare Supplement state block, plus
+Short Term Care, Medico Dental, Hospital Indemnity, First Diagnosis Cancer and
+Critical Illness, matched what was already loaded. No changes were needed.
+
+### Bankers Fidelity — verified, Disability rates corrected
+
+Confirmed against all 5 pages. Medicare Supplement Preferred/Standard and
+HDF/HDG/K rates, Vantage Flex Plus, Vantage Care, Vantage Recovery and
+LifeVantage Secure Final Expense all matched.
+
+One error: **the Disability rate is not 4% everywhere.** It had been loaded as a
+flat 4% across AZ, LA, NC, NJ, OH, PA, TX and VA. The schedule actually pays:
+
+| State | Disability | Disability, Plans HDF/HDG/K |
+|---|---|---|
+| AZ, NC, NJ, OH, TX, VA | 4% | — |
+| Pennsylvania | **11.5%** | **14%** |
+| Louisiana | **23%** | **28%** |
+
+Pennsylvania and Louisiana also carry a separate rate for the high-deductible
+disability form (8236), which had no entry at all. Louisiana disability was
+understated by nearly six times.
 
 ### Liberty Bankers — verified, nothing wrong
 

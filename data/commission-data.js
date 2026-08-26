@@ -1215,8 +1215,19 @@
     bf(['TX'], 'Medicare Supplement - Preferred / Standard', [[null, 80, 0.22], [81, null, 0.11]]);
     bf(['TX'], 'Medicare Supplement - Plans HDF, HDG & K', [[65, 80, 0.26], [81, null, 0.13]]);
 
-    // Disability plans
-    bf(['AZ', 'LA', 'NC', 'NJ', 'OH', 'PA', 'TX', 'VA'], 'Medicare Supplement - Disability (under 65)', [[null, 64, 0.04]]);
+    // Disability plans. The rate is 4% in most states but Pennsylvania and
+    // Louisiana pay considerably more, and both add a separate rate for the
+    // high-deductible disability form (8236).
+    bf(['AZ', 'NC', 'NJ', 'OH', 'TX', 'VA'], 'Medicare Supplement - Disability (under 65)',
+      [[null, 64, 0.04]]);
+    bf(['PA'], 'Medicare Supplement - Disability (under 65)',
+      [[null, 64, 0.115]]);
+    bf(['PA'], 'Medicare Supplement - Disability, Plans HDF, HDG & K (under 65)',
+      [[null, 64, 0.14]]);
+    bf(['LA'], 'Medicare Supplement - Disability (under 65)',
+      [[null, 64, 0.23]]);
+    bf(['LA'], 'Medicare Supplement - Disability, Plans HDF, HDG & K (under 65)',
+      [[null, 64, 0.28]]);
 
     // --- Ancillary (6 month advance) ---------------------------------------
     add([

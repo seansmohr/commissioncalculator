@@ -1151,6 +1151,69 @@ test('Arizona, Florida, Louisiana and Nevada pay 0% on Medicare Supplement', fun
   });
 });
 
+console.log('\nMedico and Bankers Fidelity (verified against source PDFs)');
+
+test('Medico Medicare Supplement matches the source in every appointed state', function () {
+  var other = 'Medicare Supplement - All plans except Plan N';
+  var n = 'Medicare Supplement - Plan N';
+  close(engine.findRule('Medico', 'AZ', other, 70).rate, 0.22, 'AZ 65-79');
+  close(engine.findRule('Medico', 'AZ', other, 82).rate, 0.175, 'AZ 80-85');
+  close(engine.findRule('Medico', 'AZ', other, 90).rate, 0.105, 'AZ 86+');
+  close(engine.findRule('Medico', 'FL', other, 60).rate, 0.03, 'FL under 65');
+  close(engine.findRule('Medico', 'FL', other, 70).rate, 0.20, 'FL 65-79');
+  close(engine.findRule('Medico', 'NC', other, 60).rate, 0.0, 'NC under 65 is a real 0%');
+  close(engine.findRule('Medico', 'TX', other, 60).rate, 0.01, 'TX under 65');
+  close(engine.findRule('Medico', 'IL', other, 60).rate, 0.05, 'IL under 65');
+  close(engine.findRule('Medico', 'LA', n, 70).rate, 0.27, 'LA Plan N 65-79');
+  close(engine.findRule('Medico', 'OH', n, 90).rate, 0.135, 'OH Plan N 86+');
+  close(engine.findRule('Medico', 'PA', other, 60).rate, 0.01, 'PA under 65');
+});
+
+test('Medico other product lines match the source', function () {
+  close(engine.findRule('Medico', 'TX', 'Short Term Care', 60).rate, 0.65, 'STC all states');
+  close(engine.findRule('Medico', 'TX', 'Medico Dental', 60).rate, 0.59, 'dental main group');
+  close(engine.findRule('Medico', 'NV', 'Medico Dental', 60).rate, 0.18, 'dental Nevada');
+  close(engine.findRule('Medico', 'TX', 'Hospital Indemnity', 60).rate, 0.65, 'HI group 1');
+  close(engine.findRule('Medico', 'AZ', 'Hospital Indemnity', 60).rate, 0.54, 'HI group 2');
+  close(engine.findRule('Medico', 'NV', 'First Diagnosis Cancer - without Inflation Protection', 60).rate, 0.60, 'FDC plain');
+  close(engine.findRule('Medico', 'NV', 'First Diagnosis Cancer - with Inflation Protection', 60).rate, 0.67, 'FDC inflation');
+  close(engine.findRule('Medico', 'TX', 'Critical Illness', 60).rate, 0.70, 'critical illness');
+});
+
+test('Bankers Fidelity Disability rates are not uniform across states', function () {
+  var dis = 'Medicare Supplement - Disability (under 65)';
+  var hd = 'Medicare Supplement - Disability, Plans HDF, HDG & K (under 65)';
+  ['AZ', 'NC', 'NJ', 'OH', 'TX', 'VA'].forEach(function (st) {
+    close(engine.findRule('Bankers Fidelity', st, dis, 60).rate, 0.04, st + ' disability');
+    assert.ok(engine.getProducts('Bankers Fidelity', st).indexOf(hd) === -1,
+      st + ' has no separate high-deductible disability rate');
+  });
+  close(engine.findRule('Bankers Fidelity', 'PA', dis, 60).rate, 0.115, 'PA disability');
+  close(engine.findRule('Bankers Fidelity', 'PA', hd, 60).rate, 0.14, 'PA HDF/HDG/K disability');
+  close(engine.findRule('Bankers Fidelity', 'LA', dis, 60).rate, 0.23, 'LA disability');
+  close(engine.findRule('Bankers Fidelity', 'LA', hd, 60).rate, 0.28, 'LA HDF/HDG/K disability');
+});
+
+test('Bankers Fidelity Medicare Supplement and ancillary rates match the source', function () {
+  var ps = 'Medicare Supplement - Preferred / Standard';
+  var hdk = 'Medicare Supplement - Plans HDF, HDG & K';
+  ['AZ', 'IL', 'LA', 'NC', 'NJ', 'OH', 'PA', 'VA'].forEach(function (st) {
+    close(engine.findRule('Bankers Fidelity', st, ps, 70).rate, 0.23, st + ' Pref/Standard');
+    close(engine.findRule('Bankers Fidelity', st, hdk, 70).rate, 0.28, st + ' HDF/HDG/K');
+  });
+  close(engine.findRule('Bankers Fidelity', 'TX', ps, 70).rate, 0.22, 'TX Pref/Standard');
+  close(engine.findRule('Bankers Fidelity', 'TX', hdk, 70).rate, 0.26, 'TX HDF/HDG/K');
+
+  close(engine.findRule('Bankers Fidelity', 'TX', 'Vantage Flex Plus (Hospital Indemnity)', 60).rate, 0.67, 'TX HI');
+  close(engine.findRule('Bankers Fidelity', 'VA', 'Vantage Flex Plus (Hospital Indemnity)', 60).rate, 0.52, 'VA HI');
+  close(engine.findRule('Bankers Fidelity', 'OH', 'Vantage Care (Lump Sum Cancer)', 60).rate, 0.95, 'OH Vantage Care');
+  close(engine.findRule('Bankers Fidelity', 'NJ', 'Vantage Care (Lump Sum Cancer)', 60).rate, 0.87, 'NJ Vantage Care');
+  close(engine.findRule('Bankers Fidelity', 'TX', 'Vantage Recovery (Short-Term Care)', 60).rate, 0.60, 'TX Recovery');
+  close(engine.findRule('Bankers Fidelity', 'AZ', 'Vantage Recovery (Short-Term Care)', 60).rate, 0.50, 'AZ Recovery');
+  close(engine.findRule('Bankers Fidelity', 'TX', 'LifeVantage Secure Final Expense Whole Life', 60).rate, 1.35, 'FE 45-75');
+  close(engine.findRule('Bankers Fidelity', 'TX', 'LifeVantage Secure Final Expense Whole Life', 80).rate, 0.875, 'FE 76-85');
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {

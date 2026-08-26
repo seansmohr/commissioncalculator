@@ -112,9 +112,11 @@ Fidelity, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
 Mutual of Omaha (Long Term Care only), Physicians Mutual.
 
 Read from the full source and complete: **Aetna Senior Supplemental**,
-**Aflac**, **American Benefit Life**, **Healthspring**, **Heartland**,
-**Physicians Mutual**, **Manhattan Life**, and **Mutual of Omaha** (for the Long
-Term Care schedule, which is all that schedule contains).
+**Aflac**, **American Benefit Life**, **Bankers Fidelity**, **Healthspring**,
+**Heartland**, **Liberty Bankers**, **Manhattan Life**, **Medico**, **Physicians
+Mutual**, and **Mutual of Omaha** (for the Long Term Care schedule, which is all
+that schedule contains). Only **GTL** rests on a weaker source — a carrier
+portal rates panel — and its rules are flagged accordingly.
 
 **GTL** is loaded from a carrier-portal rates panel rather than a commission
 schedule. It has no state or age breakdown, so every GTL rule is flagged for
