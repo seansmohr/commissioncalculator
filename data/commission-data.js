@@ -884,6 +884,20 @@
       [[null, 64, 0.028], [65, 79, 0.22], [80, null, 0.11]]);
     medSupp(['PA'], 'Medicare Supplement - Plan N',
       [[null, 64, 0.028], [65, 79, 0.26], [80, null, 0.13]]);
+
+    // --- Final Expense (page 4 of the schedule, a scanned page) -------------
+    // All states where the product is available.
+    var feNote = 'No commissions on policy fee or policy conversions. Full commission on all plan riders.';
+    add([
+      {
+        carrier: 'Aflac', states: ALL, category: 'final_expense',
+        product: 'Final Expense - Level Benefit', minAge: 45, maxAge: 80, rate: 1.08, note: feNote
+      },
+      {
+        carrier: 'Aflac', states: ALL, category: 'final_expense',
+        product: 'Final Expense - Modified', minAge: 40, maxAge: 75, rate: 0.95, note: feNote
+      }
+    ]);
   }());
 
   // ===========================================================================

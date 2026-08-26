@@ -13,7 +13,7 @@ published rates are used anywhere.
 | Healthspring | Loyal American Life commission schedule (eff. 04/07/2025) — **all 5 pages** | GA-60 |
 | Physicians Mutual | `physicians mutual commission schedules.xlsx` — **all sheets, confirmed against screenshots** | General Agent (topline street), Level 5 |
 | Manhattan Life | `manhattan life commission schedule` (JU Level 5, 2-2026) — **all 4 pages, scanned; read visually** | MGA |
-| Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (eff. 05/01/2026) | GA 8 |
+| Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (TERBRKXX01_08, eff. 05/01/2026) — **all 4 pages** | GA 8 |
 | American Benefit Life | `American Benefit Life Commission Schedule.pdf` (eff. 11/01/2025) | GA 10 |
 | Liberty Bankers | `Liberty Bankers Commission Schedules` (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) | MGA Level 4 |
@@ -120,6 +120,18 @@ All rates confirmed against the Level 5 / General Agent (topline street) column.
 Nothing was wrong. Two products were added: **Medigap Internal Replacement**
 (12.5%) and **Dental Internal Replacement** (5%), both of which pay materially
 less than new business.
+
+### Aflac (Tier One) — verified, Final Expense added
+
+All Medicare Supplement state blocks confirmed correct, including the flat-7%
+states (CA, ID, NV, VA), the states with no under-65 availability (AZ, OH), and
+New Jersey's split where Plans C and D are available under 65 but Plan N is not.
+
+**Page 4 is a scanned page and had been missed entirely.** It carries the Tier
+One **Final Expense** schedule, now loaded: Level Benefit (issue ages 45-80) at
+108% and Modified (issue ages 40-75) at 95%, available in all states where the
+product is sold. No commission on policy fee or conversions; full commission on
+all plan riders.
 
 ### Manhattan Life — verified, one state fixed
 

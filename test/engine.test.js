@@ -582,6 +582,61 @@ test('every Manhattan Life product is as-earned with no advance', function () {
   close(r.totalFirstYearCommission, 864, 'total first year');
 });
 
+console.log('\nAflac / Tier One (all 4 pages)');
+
+test('Aflac Final Expense is loaded with both plan types', function () {
+  var lvl = engine.findRule('Aflac', 'TX', 'Final Expense - Level Benefit', 60);
+  var mod = engine.findRule('Aflac', 'TX', 'Final Expense - Modified', 60);
+  close(lvl.rate, 1.08, 'Level Benefit');
+  close(mod.rate, 0.95, 'Modified');
+  // Issue-age windows differ between the two plans.
+  assert.strictEqual(engine.findRule('Aflac', 'TX', 'Final Expense - Level Benefit', 42), null, 'Level starts at 45');
+  assert.ok(engine.findRule('Aflac', 'TX', 'Final Expense - Modified', 42), 'Modified starts at 40');
+  assert.strictEqual(engine.findRule('Aflac', 'TX', 'Final Expense - Modified', 78), null, 'Modified ends at 75');
+  assert.ok(engine.findRule('Aflac', 'TX', 'Final Expense - Level Benefit', 78), 'Level runs to 80');
+});
+
+test('Aflac Final Expense uses the 12 month advance', function () {
+  var r = engine.calculate({
+    carrier: 'Aflac', state: 'TX',
+    product: 'Final Expense - Level Benefit', age: 60, monthlyPremium: 100
+  });
+  assert.ok(r.found);
+  assert.strictEqual(r.advanceMonths, 12);
+  close(r.totalFirstYearCommission, 1296, 'total first year');
+  close(r.upfrontCommission, 1296, 'upfront');
+});
+
+test('Aflac Medicare Supplement state blocks match the schedule', function () {
+  var afg = 'Medicare Supplement - Plans A, F, G';
+  var n = 'Medicare Supplement - Plan N';
+  // Group 1 states plus Texas, which has its own block at the same rates.
+  ['LA', 'NC', 'TX'].forEach(function (st) {
+    close(engine.findRule('Aflac', st, afg, 60).rate, 0.008, st + ' under 65');
+    close(engine.findRule('Aflac', st, afg, 70).rate, 0.22, st + ' 65-79');
+    close(engine.findRule('Aflac', st, afg, 82).rate, 0.11, st + ' 80+');
+    close(engine.findRule('Aflac', st, n, 70).rate, 0.26, st + ' Plan N 65-79');
+  });
+  // Arizona is group 1 but has no under-65 availability.
+  assert.strictEqual(engine.findRule('Aflac', 'AZ', afg, 60), null, 'AZ has no under-65 plans');
+  close(engine.findRule('Aflac', 'AZ', afg, 70).rate, 0.22, 'AZ 65-79');
+  // Flat 7% states.
+  ['CA', 'ID', 'NV'].forEach(function (st) {
+    close(engine.findRule('Aflac', st, afg, 70).rate, 0.07, st + ' flat 7%');
+    close(engine.findRule('Aflac', st, n, 82).rate, 0.07, st + ' Plan N flat 7%');
+  });
+  close(engine.findRule('Aflac', 'VA', 'Medicare Supplement - All marketed plans (incl. Plan N)', 70).rate, 0.07, 'VA');
+  // Ohio has no under-65 row.
+  assert.strictEqual(engine.findRule('Aflac', 'OH', afg, 60), null, 'OH has no under-65 plans');
+  close(engine.findRule('Aflac', 'OH', afg, 70).rate, 0.21, 'OH 65-79');
+  close(engine.findRule('Aflac', 'OH', n, 82).rate, 0.125, 'OH Plan N 80+');
+});
+
+test('New Jersey Plan N has no under-65 rate but A/F/G/C/D does', function () {
+  close(engine.findRule('Aflac', 'NJ', 'Medicare Supplement - Plans A, F, G, C, D', 60).rate, 0.008, 'NJ C/D under 65');
+  assert.strictEqual(engine.findRule('Aflac', 'NJ', 'Medicare Supplement - Plan N', 60), null, 'NJ Plan N under 65');
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {
