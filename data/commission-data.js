@@ -1350,13 +1350,48 @@
       [[null, 64, 0.016], [65, 80, 0.20], [81, null, 0.0925]], paNote);
   }());
 
+  // ===========================================================================
+  // GTL - 9 month advance
+  //
+  // Source is the "GTL Commission Rates" panel from the carrier portal, which
+  // lists first-year/renewal pairs by product code and nothing else. It carries
+  // NO state breakdown and NO age bands, so every rule below is written to all
+  // appointed states at all ages and is flagged for verification. Several
+  // products on the panel show no rate at all and are therefore not loaded.
+  //
+  // GTL's advance is a flat 9 months for every product, so the product category
+  // below does not affect the calculation.
+  // ===========================================================================
+  (function gtl() {
+    var src = 'From the GTL Commission Rates panel, which gives a first-year rate only - no state or age breakdown. Confirm before quoting a large case.';
+
+    [
+      ['24HR', 0.45, 'ancillary'],
+      ['ADV+', 0.50, 'ancillary'],
+      ['Cancer 2.0', 0.45, 'ancillary'],
+      ['CP+', 0.55, 'ancillary'],
+      ['Heritage', 0.80, 'ancillary'],
+      ['HHC', 0.60, 'ancillary'],
+      ['MedSup', 0.23, 'medicare_supplement'],
+      ['PCare', 0.45, 'ancillary'],
+      ['RecoverCash', 0.60, 'ancillary']
+    ].forEach(function (row) {
+      add([{
+        carrier: 'GTL', states: ALL, category: row[2],
+        product: row[0], rate: row[1],
+        note: row[0] === 'ADV+'
+          ? src + ' The panel also shows "N25" against this product; its meaning is not established.'
+          : src,
+        verify: true
+      }]);
+    });
+  }());
+
   // ---------------------------------------------------------------------------
   // Carriers with no usable rate data yet (kept out of the dropdown, listed in
   // SOURCES.md).
   // ---------------------------------------------------------------------------
-  var CARRIERS_WITHOUT_DATA = [
-    { name: 'GTL', reason: 'The linked commission schedule is a PNG image and the image data cannot be retrieved intact, so there is no rate text to transcribe.' }
-  ];
+  var CARRIERS_WITHOUT_DATA = [];
 
   var DATA = {
     appointedStates: APPOINTED_STATES,

@@ -114,8 +114,10 @@ Read from the full source and complete: **Aetna Senior Supplemental**,
 **Manhattan Life**, and **Mutual of Omaha** (for the Long Term Care schedule,
 which is all that schedule contains).
 
-Not loaded: **GTL** — its schedule is a PNG image whose data can't be retrieved
-intact, so there are no rates to transcribe.
+**GTL** is loaded from a carrier-portal rates panel rather than a commission
+schedule. It has no state or age breakdown, so every GTL rule is flagged for
+verification and shows a caution note on the results card. See
+[`data/SOURCES.md`](data/SOURCES.md) before relying on it.
 
 Heartland's rates are loaded but its **advance term is unknown** (blank in the
 spreadsheet, unstated in the schedule). For Heartland the calculator shows the

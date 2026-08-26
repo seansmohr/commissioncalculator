@@ -694,6 +694,47 @@ test('previously loaded American Benefit Life states are unchanged', function ()
   close(engine.findRule('American Benefit Life', 'TX', fg, 70).rate, 0.245, 'TX 65-79');
 });
 
+console.log('\nGTL (portal rates panel)');
+
+test('GTL rates load with the 9 month advance', function () {
+  var cases = [
+    ['24HR', 0.45], ['ADV+', 0.50], ['Cancer 2.0', 0.45], ['CP+', 0.55],
+    ['Heritage', 0.80], ['HHC', 0.60], ['MedSup', 0.23], ['PCare', 0.45],
+    ['RecoverCash', 0.60]
+  ];
+  cases.forEach(function (c) {
+    var r = engine.calculate({
+      carrier: 'GTL', state: 'TX', product: c[0], age: 70, monthlyPremium: 100
+    });
+    assert.ok(r.found, c[0] + ' should resolve');
+    close(r.rate, c[1], c[0]);
+    assert.strictEqual(r.advanceMonths, 9, c[0] + ' advance');
+    close(r.upfrontCommission, 100 * 9 * c[1], c[0] + ' upfront');
+    close(r.remainingAsEarned, 100 * 3 * c[1], c[0] + ' remaining as-earned');
+  });
+});
+
+test('every GTL rule is flagged for verification', function () {
+  DATA.rules.filter(function (r) { return r.carrier === 'GTL'; }).forEach(function (r) {
+    assert.strictEqual(r.verify, true, r.product + ' should be flagged');
+    assert.ok(r.note && r.note.indexOf('no state or age breakdown') !== -1,
+      r.product + ' should say the source has no state or age breakdown');
+  });
+});
+
+test('GTL products with no rate on the panel are not loaded', function () {
+  var products = engine.getProducts('GTL', 'TX');
+  ['CCash', 'CHS Pro+', 'CI', 'DVH', 'LifeSelect', 'Indemnity Plus', 'IndGap'].forEach(function (p) {
+    assert.ok(products.indexOf(p) === -1, p + ' has no rate on the panel and must not be loaded');
+  });
+});
+
+test('GTL is no longer listed as a carrier without data', function () {
+  var names = (DATA.carriersWithoutData || []).map(function (c) { return c.name; });
+  assert.ok(names.indexOf('GTL') === -1);
+  assert.ok(engine.getCarriers().indexOf('GTL') !== -1, 'GTL should appear in the carrier dropdown');
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {

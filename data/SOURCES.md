@@ -18,6 +18,7 @@ published rates are used anywhere.
 | Liberty Bankers | `Liberty Bankers Commission Schedules` (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) | MGA Level 4 |
 | Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) | General Agent |
+| GTL | "GTL Commission Rates" panel from the carrier portal (screenshot) | not stated on the panel |
 | Heartland | `heartland commission schedules` (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Short-Term Home Health Care rev. 10/23) | GA1 |
 
 Advance arrangements come from column B of
@@ -45,11 +46,29 @@ These are omissions, not guesses. The calculator returns
 "Commission information not found for this selection." for anything below rather
 than estimating.
 
-1. **GTL** — no rules loaded. The linked schedule is a PNG image and the image
-   data cannot be retrieved intact through the Drive connector (it arrives
-   truncated and renders blank), so there is no rate text to transcribe. The
-   spreadsheet's 9-month advance for GTL is already recorded; only the rates are
-   missing. **A PDF version, or the rates pasted as text, is all that's needed.**
+1. **GTL — loaded, but from a rates panel rather than a schedule.** The source
+   is a screenshot of the carrier portal's "GTL Commission Rates" list, which
+   gives a first-year/renewal pair per product code and nothing else. Nine
+   products have rates and are loaded; **every GTL rule is flagged for
+   verification** and shows a caution note on the results card. Three things are
+   worth resolving before relying on it:
+
+   - **No state breakdown.** The panel does not vary by state, so the rules are
+     written to all 13 appointed states. If GTL's rates actually differ by
+     state — as every other carrier's Medicare Supplement does — these will be
+     wrong outside whichever state the panel reflects.
+   - **No age bands.** Same issue. **MedSup at a flat 23% is the one to check
+     hardest**: every other carrier in this calculator varies Medicare
+     Supplement by age (under 65 / 65-79 / 80+), so a single flat rate is
+     unusual and may be a headline figure rather than the whole picture.
+   - **The panel is cut off** at "GmGap" and "SupSel", so there may be further
+     products below the visible area.
+
+   Products listed on the panel with **no rate shown** are deliberately not
+   loaded: CCash, CHS Pro+, CI, DVH, LifeSelect, Indemnity Plus, IndGap.
+
+   The `ADV+` entry reads "50/3 N25" on the panel. It is loaded at 50%; the
+   meaning of "N25" is not established and is recorded in the rule's note.
 
 2. **Mutual of Omaha — everything except Long Term Care.** The schedule PDF was
    re-supplied in full (16 pages) and confirmed: it contains the cover letter,
