@@ -96,13 +96,8 @@
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary"'
     },
     'Heartland': {
-      // The spreadsheet leaves the advance column blank for Heartland, and the
-      // schedule confirms advances exist ("chargebacks on unearned advanced
-      // premiums") without stating a term. null = known carrier, unknown term:
-      // the calculator shows the rate and total first-year commission but will
-      // not invent an upfront figure.
-      default: null,
-      source: 'Advance term not stated in the spreadsheet or the schedule. The Medicare Supplement schedule adds: "Commissions are not advanced on policies for Under 65 or 81+ policyholders."'
+      default: 9,
+      source: 'Confirmed with the agency: 9 month advance, GA1 level. The Medicare Supplement schedule adds: "Commissions are not advanced on policies for Under 65 or 81+ policyholders."'
     }
   };
 
@@ -1278,13 +1273,18 @@
   }());
 
   // ===========================================================================
-  // HEARTLAND NATIONAL - GA1 level
-  // Advance term is not on file (see the ADVANCES entry above).
+  // HEARTLAND NATIONAL - GA1 level - 9 month advance
+  //
+  // Read from all 10 pages of the schedule. Pages 7-9 are blank. The product on
+  // page 2 (form 93017) is Secure Advantage Flex - its name appears only in a
+  // logo image, which is why flat text extraction could not identify it.
   // ===========================================================================
   (function heartland() {
-    var noAdvanceUnder65Or81 = 'Heartland does not advance commissions on policies for under 65 or 81+ policyholders.';
+    // Medicare Supplement is not advanced at these ages even though the carrier
+    // advances 9 months normally, so those rules override the advance to 0.
+    var noAdvance = 'Heartland does not advance commissions on Medicare Supplement policies for under 65 or 81+ policyholders, so this pays as-earned.';
 
-    // --- Simply Secure Cancer, Heart Attack & Stroke (GA1) -------------------
+    // --- Simply Secure Cancer, Heart Attack & Stroke (page 1) ---------------
     add([
       {
         carrier: 'Heartland', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
@@ -1304,7 +1304,27 @@
       }
     ]);
 
-    // --- Secure Choice Short-Term Home Health Care (GA1) ---------------------
+    // --- Secure Advantage Flex hospital coverage (page 2, form 93017) -------
+    add([
+      {
+        carrier: 'Heartland', states: ['IL', 'LA', 'NC', 'NV', 'PA', 'TX'], category: 'ancillary',
+        product: 'Secure Advantage Flex (Hospital Coverage)', maxAge: 80, rate: 0.60
+      },
+      {
+        carrier: 'Heartland', states: ['IL', 'LA', 'NC', 'NV', 'PA', 'TX'], category: 'ancillary',
+        product: 'Secure Advantage Flex (Hospital Coverage)', minAge: 81, maxAge: 85, rate: 0.40
+      },
+      {
+        carrier: 'Heartland', states: ['AZ', 'FL', 'OH', 'VA'], category: 'ancillary',
+        product: 'Secure Advantage Flex (Hospital Coverage)', maxAge: 80, rate: 0.55
+      },
+      {
+        carrier: 'Heartland', states: ['AZ', 'FL', 'OH', 'VA'], category: 'ancillary',
+        product: 'Secure Advantage Flex (Hospital Coverage)', minAge: 81, maxAge: 85, rate: 0.35
+      }
+    ]);
+
+    // --- Secure Choice Short-Term Home Health Care (page 10) ----------------
     add([
       {
         carrier: 'Heartland', states: ['AZ', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'ancillary',
@@ -1316,38 +1336,45 @@
       }
     ]);
 
-    // --- Medicare Supplement (Heartland National, eff. 06/01/2019) -----------
-    // Our appointed states appearing on this schedule: NC, OH, PA.
-    function hms(states, product, bands, note) {
+    // --- Medicare Supplement (pages 3-6, eff. 06/01/2019) -------------------
+    // Our appointed states on this schedule: NC, OH, PA.
+    function hms(states, product, bands) {
       bands.forEach(function (b) {
-        add([{
+        var rule = {
           carrier: 'Heartland', states: states, category: 'medicare_supplement',
-          product: product, minAge: b[0], maxAge: b[1], rate: b[2], note: note
-        }]);
+          product: product, minAge: b[0], maxAge: b[1], rate: b[2]
+        };
+        // Under 65 and 81+ are not advanced.
+        if ((b[1] != null && b[1] <= 64) || (b[0] != null && b[0] >= 81)) {
+          rule.advanceMonths = 0;
+          rule.note = noAdvance;
+        }
+        add([rule]);
       });
     }
 
-    var ncUnder65 = 'Under age 65 pays 0.90% on every plan in NC. ' + noAdvanceUnder65Or81;
-
+    // North Carolina. The 0-64 table sits inside the PLAN A box on the page -
+    // Plan G and Plan N have no under-65 rate here.
     hms(['NC'], 'Medicare Supplement - Plan A',
-      [[null, 64, 0.009], [65, 80, 0.016], [81, null, 0.016]], ncUnder65);
+      [[null, 64, 0.009], [65, 80, 0.016], [81, null, 0.016]]);
     hms(['NC'], 'Medicare Supplement - Plan G',
-      [[null, 64, 0.009], [65, 80, 0.18], [81, null, 0.04]], ncUnder65);
+      [[65, 80, 0.18], [81, null, 0.04]]);
     hms(['NC'], 'Medicare Supplement - Plan N',
-      [[null, 64, 0.009], [65, 80, 0.20], [81, null, 0.0925]], ncUnder65);
+      [[65, 80, 0.20], [81, null, 0.0925]]);
 
+    // Ohio has no under-65 rates on any plan.
     hms(['OH'], 'Medicare Supplement - Plan A',
-      [[65, 80, 0.028], [81, null, 0.028]], noAdvanceUnder65Or81);
+      [[65, 80, 0.028], [81, null, 0.028]]);
     hms(['OH'], 'Medicare Supplement - Plans C & G',
-      [[65, 80, 0.19], [81, null, 0.05]], noAdvanceUnder65Or81);
+      [[65, 80, 0.19], [81, null, 0.05]]);
     hms(['OH'], 'Medicare Supplement - Plan N',
-      [[65, 80, 0.21], [81, null, 0.1025]], noAdvanceUnder65Or81);
+      [[65, 80, 0.21], [81, null, 0.1025]]);
 
-    var paNote = noAdvanceUnder65Or81 + ' Guaranteed Issue business in PA pays 4% to the writing agent, years 1-6.';
+    // Pennsylvania. GI business pays 4% to the writing agent, years 1-6.
     hms(['PA'], 'Medicare Supplement - Plans A, B, C, G',
-      [[null, 64, 0.016], [65, 80, 0.18], [81, null, 0.04]], paNote);
+      [[null, 64, 0.016], [65, 80, 0.18], [81, null, 0.04]]);
     hms(['PA'], 'Medicare Supplement - Plan N',
-      [[null, 64, 0.016], [65, 80, 0.20], [81, null, 0.0925]], paNote);
+      [[null, 64, 0.016], [65, 80, 0.20], [81, null, 0.0925]]);
   }());
 
   // ===========================================================================

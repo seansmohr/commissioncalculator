@@ -145,7 +145,11 @@
       return { found: false, message: NOT_FOUND };
     }
 
-    var advanceMonths = getAdvanceMonths(carrier, rule.category);
+    // A rule may override the carrier's advance term - some schedules withhold
+    // the advance for particular ages even though the carrier advances normally.
+    var advanceMonths = Object.prototype.hasOwnProperty.call(rule, 'advanceMonths')
+      ? rule.advanceMonths
+      : getAdvanceMonths(carrier, rule.category);
     if (advanceMonths === undefined) {
       return { found: false, message: NOT_FOUND };
     }

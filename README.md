@@ -44,10 +44,12 @@ percentage.
 Supplement Plan N than for its other plans, Plan N is a separate product in the
 dropdown with its own rate.
 
-**Advances are per carrier *and* product.** Bankers Fidelity advances 9 months
-on Medicare Supplement and 6 months on ancillary. Liberty Bankers advances 9
-months on ancillary and nothing on Medicare Supplement. The calculator applies
-the right one and shows which spreadsheet line it came from.
+**Advances are per carrier *and* product — and sometimes per age.** Bankers
+Fidelity advances 9 months on Medicare Supplement and 6 months on ancillary.
+Liberty Bankers advances 9 months on ancillary and nothing on Medicare
+Supplement. Heartland advances 9 months, except on Medicare Supplement under 65
+or at 81+, which pays as-earned. The calculator applies the right one and shows
+which source it came from.
 
 ## The math
 
@@ -110,19 +112,14 @@ Fidelity, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
 Mutual of Omaha (Long Term Care only), Physicians Mutual.
 
 Read from the full source and complete: **Aetna Senior Supplemental**,
-**Aflac**, **American Benefit Life**, **Healthspring**, **Physicians Mutual**,
-**Manhattan Life**, and **Mutual of Omaha** (for the Long Term Care schedule,
-which is all that schedule contains).
+**Aflac**, **American Benefit Life**, **Healthspring**, **Heartland**,
+**Physicians Mutual**, **Manhattan Life**, and **Mutual of Omaha** (for the Long
+Term Care schedule, which is all that schedule contains).
 
 **GTL** is loaded from a carrier-portal rates panel rather than a commission
 schedule. It has no state or age breakdown, so every GTL rule is flagged for
 verification and shows a caution note on the results card. See
 [`data/SOURCES.md`](data/SOURCES.md) before relying on it.
-
-Heartland's rates are loaded but its **advance term is unknown** (blank in the
-spreadsheet, unstated in the schedule). For Heartland the calculator shows the
-rate and total first-year commission and labels the advance "Not on file"
-rather than inventing an upfront figure.
 
 Remaining gaps are listed in [`data/SOURCES.md`](data/SOURCES.md).
 

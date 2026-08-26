@@ -19,7 +19,7 @@ published rates are used anywhere.
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) | MGA Level 4 |
 | Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) | General Agent |
 | GTL | "GTL Commission Rates" panel from the carrier portal (screenshot) | not stated on the panel |
-| Heartland | `heartland commission schedules` (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Short-Term Home Health Care rev. 10/23) | GA1 |
+| Heartland | `heartland commission schedules` — **all 10 pages** (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Secure Advantage Flex form 93017; Short-Term Home Health Care rev. 10/23) | GA1 |
 
 Advance arrangements come from column B of
 `Carrier Advances_Commission schedules.xlsx` and nowhere else — the spreadsheet
@@ -92,22 +92,6 @@ than estimating.
    carries a **9-month** advance versus 12 months for other Mutual of Omaha
    health products, so it needs its own advance entry once rates arrive.
 
-3. **Heartland — advance term unknown.** Rates are loaded, but the spreadsheet
-   leaves the advance column blank for Heartland and the schedule never states a
-   term (it only confirms advances exist, via "chargebacks on unearned advanced
-   premiums"). The calculator shows the rate and total first-year commission and
-   labels the advance "Not on file" rather than inventing an upfront figure. The
-   Medicare Supplement schedule does add that **commissions are not advanced on
-   under-65 or 81+ policies**.
-
-4. **Heartland — one unidentified rate table.** The combined PDF contains a GA1
-   rate table (form 93017, dated 10/1/2017) whose product name is not in the
-   extracted text. It covers issue ages 0–80 and 81–85 across three state groups:
-   60%/40% first year for AL, AK, AR, DE, GA, HI, IL, IA, KS, LA, MS, MO, NV, NM,
-   NC, OK, OR, PA, TX, UT, WV; 55%/35% for AZ, FL, IN, KY, MD, MT, NE, ND, OH,
-   SC, TN, VA; and 45%/30% for CO, SD, WY. **Tell us which product this is and it
-   can be added as-is** — the rates are unambiguous, only the name is missing.
-
 ## Carriers read from the full source PDF
 
 Where a carrier's schedule has been supplied directly as a PDF, it is re-read
@@ -133,6 +117,31 @@ All rates confirmed against the Level 5 / General Agent (topline street) column.
 Nothing was wrong. Two products were added: **Medigap Internal Replacement**
 (12.5%) and **Dental Internal Replacement** (5%), both of which pay materially
 less than new business.
+
+### Heartland — complete, and both open questions closed
+
+Read from all 10 pages (7-9 are blank). Two things that had been outstanding are
+now resolved:
+
+- **The advance term is 9 months** at GA1 level, confirmed by the agency. It had
+  been blank in the spreadsheet and unstated in the schedule, so the calculator
+  had been showing "Advance: Not on file" rather than an upfront figure.
+- **The unidentified rate table on page 2 (form 93017) is Secure Advantage Flex**
+  hospital coverage. Its name appears only inside a logo image, which is why flat
+  text extraction could not find it. Now loaded: 60% / 40% (ages 0-80 / 81-85) in
+  IL, LA, NC, NV, PA and TX, and 55% / 35% in AZ, FL, OH and VA.
+
+One correction: **North Carolina's under-65 rate of 0.90% applies to Plan A
+only.** The 0-64 block sits inside the Plan A table on the page; Plan G and
+Plan N have no under-65 rate in NC. This had previously been applied to all
+three plans and was noted as the one reading inferred from layout — the render
+settles it.
+
+**Medicare Supplement is not advanced under 65 or at 81+**, even though the
+carrier advances 9 months normally. Those rules carry a per-rule advance
+override of 0 so the calculator reports them as-earned instead of showing an
+upfront amount that would not be paid. Ancillary products at 81-85 are still
+advanced normally.
 
 ### American Benefit Life — ambiguity resolved
 
