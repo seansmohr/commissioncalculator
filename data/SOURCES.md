@@ -14,7 +14,7 @@ published rates are used anywhere.
 | Physicians Mutual | `physicians mutual commission schedules.xlsx` — **all sheets, confirmed against screenshots** | General Agent (topline street), Level 5 |
 | Manhattan Life | `manhattan life commission schedule` (JU Level 5, 2-2026) — **all 4 pages, scanned; read visually** | MGA |
 | Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (TERBRKXX01_08, eff. 05/01/2026) — **all 4 pages** | GA 8 |
-| American Benefit Life | `American Benefit Life Commission Schedule.pdf` (eff. 11/01/2025) | GA 10 |
+| American Benefit Life | `American Benefit Life Commission Schedule.pdf` (ABLBRKMS1_10, eff. 11/01/2025) — **all 3 pages** | GA 10 |
 | Liberty Bankers | `Liberty Bankers Commission Schedules` (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) | MGA Level 4 |
 | Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) | General Agent |
@@ -89,12 +89,6 @@ than estimating.
    SC, TN, VA; and 45%/30% for CO, SD, WY. **Tell us which product this is and it
    can be added as-is** — the rates are unambiguous, only the name is missing.
 
-5. **American Benefit Life — New Jersey, Ohio, Nevada, Iowa, Nebraska.** In the
-   ABL PDF these five state blocks appear with their headings separated from
-   their rate rows, so which rate row belongs to which state cannot be
-   established with certainty. Rather than guess, these states are left out.
-   Every other ABL state block was unambiguous and is loaded.
-
 ## Carriers read from the full source PDF
 
 Where a carrier's schedule has been supplied directly as a PDF, it is re-read
@@ -120,6 +114,27 @@ All rates confirmed against the Level 5 / General Agent (topline street) column.
 Nothing was wrong. Two products were added: **Medigap Internal Replacement**
 (12.5%) and **Dental Internal Replacement** (5%), both of which pay materially
 less than new business.
+
+### American Benefit Life — ambiguity resolved
+
+The five state blocks previously left out (New Jersey, Ohio, Nevada, Iowa,
+Nebraska) were unreadable only because flat text extraction separated each
+block's heading from its rate row. Reading the PDF with column coordinates
+resolved them completely — the rate cells sit at fixed x positions that identify
+the plan and age band unambiguously.
+
+Three of the five are states we are appointed in and are now loaded:
+
+- **New Jersey** — Plan A pays 0.50% under 65, 0.90% at 65-79 and **0%** at 80+.
+  Plans F & G and Plan N have no under-65 rate at all on this schedule.
+- **Ohio** — no under-65 rates on any plan, and renewals drop to 0% from year 6.
+- **Nevada** — pays materially less than every other state: F & G at **14.50%**
+  (65-79) and **2.25%** (80+), Plan N at **20%** and **4.75%**, versus the usual
+  24.50% / 12.25% and 29.50% / 14.75%.
+
+Iowa and Nebraska were also recovered but are not states we are appointed in, so
+they are not loaded. Every previously-loaded American Benefit Life state was
+re-verified against the source and is unchanged.
 
 ### Aflac (Tier One) — verified, Final Expense added
 

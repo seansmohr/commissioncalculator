@@ -963,6 +963,33 @@
     abl(['PA'], 'Medicare Supplement - Plan N',
       [[null, 64, 0.029], [65, 79, 0.295], [80, null, 0.1475]]);
 
+    // New Jersey. Plans C and D are also offered here; the schedule's GI note
+    // treats them separately from A/F/G/N.
+    abl(['NJ'], 'Medicare Supplement - Plan A',
+      [[null, 64, 0.005], [65, 79, 0.009], [80, null, 0.0]]);
+    abl(['NJ'], 'Medicare Supplement - Plans F & G',
+      [[65, 79, 0.245], [80, null, 0.1225]],
+      'The schedule shows no under age 65 rate for Plans F and G in NJ.');
+    abl(['NJ'], 'Medicare Supplement - Plan N',
+      [[65, 79, 0.295], [80, null, 0.1475]],
+      'The schedule shows no under age 65 rate for Plan N in NJ.');
+
+    // Ohio. No under-65 column, and renewals are 0% from year 6.
+    abl(['OH'], 'Medicare Supplement - Plan A',
+      [[65, 79, 0.009], [80, null, 0.005]]);
+    abl(['OH'], 'Medicare Supplement - Plans F & G',
+      [[65, 79, 0.245], [80, null, 0.1225]]);
+    abl(['OH'], 'Medicare Supplement - Plan N',
+      [[65, 79, 0.295], [80, null, 0.1475]]);
+
+    // Nevada pays noticeably less than the other states at 65+ and 80+.
+    abl(['NV'], 'Medicare Supplement - Plan A',
+      [[null, 64, 0.0045], [65, 79, 0.009], [80, null, 0.005]]);
+    abl(['NV'], 'Medicare Supplement - Plans F & G',
+      [[null, 64, 0.0045], [65, 79, 0.145], [80, null, 0.0225]]);
+    abl(['NV'], 'Medicare Supplement - Plan N',
+      [[null, 64, 0.0045], [65, 79, 0.20], [80, null, 0.0475]]);
+
     // Texas
     abl(['TX'], 'Medicare Supplement - Plan A',
       [[null, 64, 0.0], [65, 79, 0.009], [80, null, 0.005]]);

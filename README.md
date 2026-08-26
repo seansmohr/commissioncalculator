@@ -110,9 +110,9 @@ Fidelity, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
 Mutual of Omaha (Long Term Care only), Physicians Mutual.
 
 Read from the full source and complete: **Aetna Senior Supplemental**,
-**Aflac**, **Healthspring**, **Physicians Mutual**, **Manhattan Life**, and
-**Mutual of Omaha** (for the Long Term Care schedule, which is all that
-schedule contains).
+**Aflac**, **American Benefit Life**, **Healthspring**, **Physicians Mutual**,
+**Manhattan Life**, and **Mutual of Omaha** (for the Long Term Care schedule,
+which is all that schedule contains).
 
 Not loaded: **GTL** — its schedule is a PNG image whose data can't be retrieved
 intact, so there are no rates to transcribe.
@@ -122,9 +122,7 @@ spreadsheet, unstated in the schedule). For Heartland the calculator shows the
 rate and total first-year commission and labels the advance "Not on file"
 rather than inventing an upfront figure.
 
-A few individual state blocks from other carriers were left out where the source
-PDF's layout made the state-to-rate mapping ambiguous. All of it is listed in
-[`data/SOURCES.md`](data/SOURCES.md).
+Remaining gaps are listed in [`data/SOURCES.md`](data/SOURCES.md).
 
 ## Adding or fixing rates
 

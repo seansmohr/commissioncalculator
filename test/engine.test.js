@@ -637,6 +637,63 @@ test('New Jersey Plan N has no under-65 rate but A/F/G/C/D does', function () {
   assert.strictEqual(engine.findRule('Aflac', 'NJ', 'Medicare Supplement - Plan N', 60), null, 'NJ Plan N under 65');
 });
 
+console.log('\nAmerican Benefit Life (previously ambiguous state blocks)');
+
+test('New Jersey, Ohio and Nevada are now loaded', function () {
+  ['NJ', 'OH', 'NV'].forEach(function (st) {
+    var products = engine.getProducts('American Benefit Life', st);
+    ['Medicare Supplement - Plan A', 'Medicare Supplement - Plans F & G', 'Medicare Supplement - Plan N']
+      .forEach(function (p) {
+        assert.ok(products.indexOf(p) !== -1, st + ' should offer ' + p);
+      });
+  });
+});
+
+test('Nevada pays materially less than the other American Benefit Life states', function () {
+  var fg = 'Medicare Supplement - Plans F & G';
+  close(engine.findRule('American Benefit Life', 'NV', fg, 70).rate, 0.145, 'NV 65-79');
+  close(engine.findRule('American Benefit Life', 'NV', fg, 82).rate, 0.0225, 'NV 80+');
+  close(engine.findRule('American Benefit Life', 'NV', 'Medicare Supplement - Plan N', 70).rate, 0.20, 'NV Plan N 65-79');
+  close(engine.findRule('American Benefit Life', 'NV', 'Medicare Supplement - Plan N', 82).rate, 0.0475, 'NV Plan N 80+');
+  // Most states pay 24.50% / 12.25% on F&G.
+  close(engine.findRule('American Benefit Life', 'NJ', fg, 70).rate, 0.245, 'NJ 65-79');
+  close(engine.findRule('American Benefit Life', 'OH', fg, 70).rate, 0.245, 'OH 65-79');
+});
+
+test('Ohio has no under-65 rates, New Jersey has them only on Plan A', function () {
+  ['Medicare Supplement - Plan A', 'Medicare Supplement - Plans F & G', 'Medicare Supplement - Plan N']
+    .forEach(function (p) {
+      assert.strictEqual(engine.findRule('American Benefit Life', 'OH', p, 60), null, 'OH ' + p + ' under 65');
+    });
+  close(engine.findRule('American Benefit Life', 'NJ', 'Medicare Supplement - Plan A', 60).rate, 0.005, 'NJ Plan A under 65');
+  assert.strictEqual(engine.findRule('American Benefit Life', 'NJ', 'Medicare Supplement - Plans F & G', 60), null,
+    'NJ F&G has no under-65 rate');
+  assert.strictEqual(engine.findRule('American Benefit Life', 'NJ', 'Medicare Supplement - Plan N', 60), null,
+    'NJ Plan N has no under-65 rate');
+});
+
+test('New Jersey Plan A pays 0% at 80+, which is a rate not a missing lookup', function () {
+  var r = engine.calculate({
+    carrier: 'American Benefit Life', state: 'NJ',
+    product: 'Medicare Supplement - Plan A', age: 82, monthlyPremium: 100
+  });
+  assert.strictEqual(r.found, true);
+  assert.strictEqual(r.rate, 0);
+  assert.strictEqual(r.totalFirstYearCommission, 0);
+});
+
+test('previously loaded American Benefit Life states are unchanged', function () {
+  var fg = 'Medicare Supplement - Plans F & G';
+  close(engine.findRule('American Benefit Life', 'LA', fg, 70).rate, 0.245, 'LA group 1');
+  close(engine.findRule('American Benefit Life', 'VA', fg, 60).rate, 0.009, 'VA under 65');
+  assert.strictEqual(engine.findRule('American Benefit Life', 'AZ', fg, 60), null, 'AZ has no under-65 plans');
+  close(engine.findRule('American Benefit Life', 'FL', fg, 60).rate, 0.055, 'FL under 65');
+  close(engine.findRule('American Benefit Life', 'IL', fg, 60).rate, 0.0613, 'IL under 65');
+  close(engine.findRule('American Benefit Life', 'PA', 'Medicare Supplement - Plan A', 70).rate, 0.089, 'PA Plan A 65-79');
+  close(engine.findRule('American Benefit Life', 'NC', fg, 60).rate, 0.009, 'NC under 65');
+  close(engine.findRule('American Benefit Life', 'TX', fg, 70).rate, 0.245, 'TX 65-79');
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {
