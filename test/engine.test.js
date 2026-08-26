@@ -403,16 +403,19 @@ test('Mutual of Omaha Long Term Care age bands, CA and VA', function () {
   });
 });
 
-test('Pennsylvania Long Term Care keeps both downline variants distinct', function () {
-  var withD = 'Long Term Care - Individual (new business, with downline General Agents)';
-  var noD = 'Long Term Care - Individual (new business, no downline General Agents)';
+test('Pennsylvania Long Term Care uses the no-downline scale', function () {
+  var p = 'Long Term Care - Individual (new business)';
+  var g = 'Long Term Care - Association / Sponsored Group / Common Employer (new business)';
   var products = engine.getProducts('Mutual of Omaha', 'PA');
-  assert.ok(products.indexOf(withD) !== -1);
-  assert.ok(products.indexOf(noD) !== -1);
-  close(engine.findRule('Mutual of Omaha', 'PA', withD, 65).rate, 0.60, 'PA with downline');
-  close(engine.findRule('Mutual of Omaha', 'PA', noD, 65).rate, 0.50, 'PA no downline');
-  // The undifferentiated product must not exist in PA - it would hide the choice.
-  assert.ok(products.indexOf('Long Term Care - Individual (new business)') === -1);
+  // Pennsylvania now offers the same two products as CA and VA, at its own rates.
+  assert.deepStrictEqual(products.sort(), [g, p].sort());
+  close(engine.findRule('Mutual of Omaha', 'PA', p, 65).rate, 0.50, 'PA individual under 70');
+  close(engine.findRule('Mutual of Omaha', 'PA', p, 72).rate, 0.30, 'PA individual 70-74');
+  close(engine.findRule('Mutual of Omaha', 'PA', p, 77).rate, 0.25, 'PA individual 75-79');
+  close(engine.findRule('Mutual of Omaha', 'PA', g, 65).rate, 0.45, 'PA group under 70');
+  // California and Virginia are unaffected and still pay the higher scale.
+  close(engine.findRule('Mutual of Omaha', 'CA', p, 65).rate, 0.60, 'CA is unchanged');
+  close(engine.findRule('Mutual of Omaha', 'VA', p, 65).rate, 0.60, 'VA is unchanged');
 });
 
 test('Mutual of Omaha is only offered where we hold an appointment', function () {
@@ -673,12 +676,18 @@ test('GTL rates load with the 9 month advance', function () {
   });
 });
 
-test('every GTL rule is flagged for verification', function () {
+test('GTL rules explain their source without asking for an impossible check', function () {
   DATA.rules.filter(function (r) { return r.carrier === 'GTL'; }).forEach(function (r) {
-    assert.strictEqual(r.verify, true, r.product + ' should be flagged');
+    assert.ok(!r.verify, r.product + ' should not be flagged - there is no fuller schedule to check');
     assert.ok(r.note && r.note.indexOf('no state or age breakdown') !== -1,
-      r.product + ' should say the source has no state or age breakdown');
+      r.product + ' should still say the source carries no state or age breakdown');
   });
+});
+
+test('no rule anywhere is left flagged for verification', function () {
+  var flagged = DATA.rules.filter(function (r) { return r.verify; });
+  assert.strictEqual(flagged.length, 0,
+    'flagged: ' + flagged.map(function (r) { return r.carrier + '/' + r.product; }).join(', '));
 });
 
 test('GTL products with no rate on the panel are not loaded', function () {
@@ -783,309 +792,6 @@ test('every Aetna complementary health product uses the 12 month advance', funct
     assert.strictEqual(r.advanceMonths, 12, product + ' should use the 12 month advance');
     close(r.upfrontCommission, r.totalFirstYearCommission, product + ' upfront equals full first year');
   });
-});
-
-console.log('\nMutual of Omaha, Healthspring, Physicians Mutual (full PDFs)');
-
-test('Mutual of Omaha Long Term Care age bands, CA and VA', function () {
-  var p = 'Long Term Care - Individual (new business)';
-  ['CA', 'VA'].forEach(function (st) {
-    close(engine.findRule('Mutual of Omaha', st, p, 65).rate, 0.60, st + ' under 70');
-    close(engine.findRule('Mutual of Omaha', st, p, 72).rate, 0.40, st + ' 70-74');
-    close(engine.findRule('Mutual of Omaha', st, p, 77).rate, 0.35, st + ' 75-79');
-    assert.strictEqual(engine.findRule('Mutual of Omaha', st, p, 82), null, st + ' has no rate above 79');
-  });
-});
-
-test('Pennsylvania Long Term Care keeps both downline variants distinct', function () {
-  var withD = 'Long Term Care - Individual (new business, with downline General Agents)';
-  var noD = 'Long Term Care - Individual (new business, no downline General Agents)';
-  var products = engine.getProducts('Mutual of Omaha', 'PA');
-  assert.ok(products.indexOf(withD) !== -1);
-  assert.ok(products.indexOf(noD) !== -1);
-  close(engine.findRule('Mutual of Omaha', 'PA', withD, 65).rate, 0.60, 'PA with downline');
-  close(engine.findRule('Mutual of Omaha', 'PA', noD, 65).rate, 0.50, 'PA no downline');
-  // The undifferentiated product must not exist in PA - it would hide the choice.
-  assert.ok(products.indexOf('Long Term Care - Individual (new business)') === -1);
-});
-
-test('Mutual of Omaha is only offered where we hold an appointment', function () {
-  var states = engine.getStates('Mutual of Omaha').map(function (s) { return s.code; }).sort();
-  assert.deepStrictEqual(states, ['CA', 'PA', 'VA']);
-});
-
-test('Healthspring Dental Vision Hearing has both Heaped and Level variants', function () {
-  var products = engine.getProducts('Healthspring', 'TX');
-  assert.ok(products.indexOf('Dental, Vision, Hearing (Heaped)') !== -1);
-  assert.ok(products.indexOf('Dental, Vision, Hearing (Level)') !== -1);
-  close(engine.findRule('Healthspring', 'TX', 'Dental, Vision, Hearing (Heaped)', 60).rate, 0.55, 'TX heaped');
-  close(engine.findRule('Healthspring', 'TX', 'Dental, Vision, Hearing (Level)', 60).rate, 0.15, 'TX level');
-  close(engine.findRule('Healthspring', 'CA', 'Dental, Vision, Hearing (Level)', 60).rate, 0.08, 'CA level');
-  close(engine.findRule('Healthspring', 'NV', 'Dental, Vision, Hearing (Level)', 60).rate, 0.05, 'NV level');
-});
-
-test('Healthspring Flexible Choice HI riders are excluded where the schedule says so', function () {
-  var rider = 'Flexible Choice Hospital Indemnity - Accident Rider';
-  assert.ok(engine.getProducts('Healthspring', 'TX').indexOf(rider) !== -1, 'TX offers the riders');
-  ['CA', 'ID', 'NJ'].forEach(function (st) {
-    assert.ok(engine.getProducts('Healthspring', st).indexOf(rider) === -1,
-      st + ' is on the not-available list for these riders');
-  });
-  close(engine.findRule('Healthspring', 'TX', 'Flexible Choice Hospital Indemnity - Lump Sum Cancer Recurrence Rider', 60).rate, 0.60, 'TX LSCR');
-  close(engine.findRule('Healthspring', 'FL', 'Flexible Choice Hospital Indemnity - Lump Sum Cancer Recurrence Rider', 60).rate, 0.55, 'FL LSCR');
-});
-
-test('Healthspring California Medicare Supplement rates match the schedule', function () {
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan A', 70).rate, 0.05, 'Plan A');
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plans F & G', 70).rate, 0.15, 'F&G 65-79');
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plans F & G', 82).rate, 0.065, 'F&G 80+');
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan N', 70).rate, 0.18, 'Plan N 65-79');
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan N', 82).rate, 0.09, 'Plan N 80+');
-});
-
-test('Healthspring Return of Premium rider is available everywhere we write', function () {
-  engine.getStates('Healthspring').forEach(function (st) {
-    close(engine.findRule('Healthspring', st.code, 'Return of Premium Rider (on selected products)', 60).rate,
-      0.50, st.code + ' ROP');
-  });
-});
-
-test('Physicians Mutual internal replacements pay less than new business', function () {
-  var oe = engine.findRule('Physicians Mutual', 'TX', 'Medicare Supplement (Medigap) - Open Enrollment', 70);
-  var ir = engine.findRule('Physicians Mutual', 'TX', 'Medicare Supplement (Medigap) - Internal Replacement', 70);
-  close(oe.rate, 0.21, 'open enrollment');
-  close(ir.rate, 0.125, 'internal replacement');
-
-  close(engine.findRule('Physicians Mutual', 'TX', 'Dental (P154 / C254) - Standard', 60).rate, 0.25, 'dental standard');
-  close(engine.findRule('Physicians Mutual', 'TX', 'Dental (P154 / C254) - Internal Replacement', 60).rate, 0.05, 'dental replacement');
-});
-
-test('Physicians Mutual life rates match the Level 5 street column', function () {
-  var cases = [
-    ['L780 Whole Life', 1.00],
-    ['LR175 5-Year Term Rider', 0.70],
-    ['LR175 10-Year Term Rider', 0.85],
-    ['LR175 15-Year Term Rider', 0.95],
-    ['LR175 20-Year Term Rider', 1.00]
-  ];
-  cases.forEach(function (c) {
-    close(engine.findRule('Physicians Mutual', 'TX', c[0], 60).rate, c[1], c[0]);
-  });
-});
-
-console.log('\nManhattan Life (scanned schedule, read visually)');
-
-test('Short Term Care state bands match the schedule', function () {
-  var p = 'Short Term Care';
-  // Top band: AK, AL, AR, DC, DE, GA, HI, IA, ID, IL, KS, LA, MA, MD, ME, MO,
-  // MS, NC, NH, NM, NV, OR, PA, TX, UT, WI, WV, WY
-  ['ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX'].forEach(function (st) {
-    close(engine.findRule('Manhattan Life', st, p, 60).rate, 0.60, st + ' ages 45-79');
-    close(engine.findRule('Manhattan Life', st, p, 82).rate, 0.50, st + ' ages 80+');
-  });
-  // Second band: AZ, FL, IN, MT, NE, OH, SC, TN, VA
-  ['AZ', 'FL', 'OH', 'VA'].forEach(function (st) {
-    close(engine.findRule('Manhattan Life', st, p, 60).rate, 0.525, st + ' ages 45-79');
-    close(engine.findRule('Manhattan Life', st, p, 82).rate, 0.35, st + ' ages 80+');
-  });
-  // MN, NJ, RI band
-  close(engine.findRule('Manhattan Life', 'NJ', p, 60).rate, 0.30, 'NJ ages 45-79');
-  close(engine.findRule('Manhattan Life', 'NJ', p, 82).rate, 0.22, 'NJ ages 80+');
-  // California is on no Short Term Care band.
-  assert.ok(engine.getProducts('Manhattan Life', 'CA').indexOf(p) === -1,
-    'CA is not on any Short Term Care band');
-});
-
-test('Short Term Care has an age floor of 45', function () {
-  assert.strictEqual(engine.findRule('Manhattan Life', 'TX', 'Short Term Care', 40), null);
-  assert.ok(engine.findRule('Manhattan Life', 'TX', 'Short Term Care', 45));
-});
-
-test('Florida-only rates override the general rate', function () {
-  close(engine.findRule('Manhattan Life', 'TX', 'Affordable Choice', 60).rate, 0.32, 'TX Affordable Choice');
-  close(engine.findRule('Manhattan Life', 'FL', 'Affordable Choice', 60).rate, 0.28, 'FL Affordable Choice');
-  close(engine.findRule('Manhattan Life', 'TX', 'Out-Of-Pocket Protection Plan', 60).rate, 0.35, 'TX OOP');
-  close(engine.findRule('Manhattan Life', 'FL', 'Out-Of-Pocket Protection Plan', 60).rate, 0.275, 'FL OOP');
-  var cancer = 'CP4000 CancerCare / Cancer Express / FOB First Diagnosis and Riders';
-  close(engine.findRule('Manhattan Life', 'TX', cancer, 60).rate, 0.55, 'TX cancer');
-  close(engine.findRule('Manhattan Life', 'FL', cancer, 60).rate, 0.475, 'FL cancer');
-});
-
-test('24 Hour Accident excludes Arizona from the general rate', function () {
-  close(engine.findRule('Manhattan Life', 'TX', '24 Hour Accident', 60).rate, 0.35, 'TX');
-  close(engine.findRule('Manhattan Life', 'AZ', '24 Hour Accident', 60).rate, 0.325, 'AZ has its own rate');
-});
-
-test('Hospital Indemnity Select is all states with two age bands', function () {
-  engine.getStates('Manhattan Life').forEach(function (st) {
-    close(engine.findRule('Manhattan Life', st.code, 'Hospital Indemnity Select', 60).rate, 0.63, st.code + ' 18-79');
-    close(engine.findRule('Manhattan Life', st.code, 'Hospital Indemnity Select', 82).rate, 0.475, st.code + ' 80+');
-  });
-});
-
-test('every Manhattan Life product is as-earned with no advance', function () {
-  var r = engine.calculate({
-    carrier: 'Manhattan Life', state: 'NV',
-    product: 'Short Term Care', age: 60, monthlyPremium: 120
-  });
-  assert.ok(r.found);
-  assert.strictEqual(r.advanceMonths, 0);
-  assert.strictEqual(r.paymentMethod, 'as-earned');
-  close(r.monthlyCommission, 72, 'monthly commission');
-  close(r.totalFirstYearCommission, 864, 'total first year');
-});
-
-console.log('\nAflac / Tier One (all 4 pages)');
-
-test('Aflac Final Expense is loaded with both plan types', function () {
-  var lvl = engine.findRule('Aflac', 'TX', 'Final Expense - Level Benefit', 60);
-  var mod = engine.findRule('Aflac', 'TX', 'Final Expense - Modified', 60);
-  close(lvl.rate, 1.08, 'Level Benefit');
-  close(mod.rate, 0.95, 'Modified');
-  // Issue-age windows differ between the two plans.
-  assert.strictEqual(engine.findRule('Aflac', 'TX', 'Final Expense - Level Benefit', 42), null, 'Level starts at 45');
-  assert.ok(engine.findRule('Aflac', 'TX', 'Final Expense - Modified', 42), 'Modified starts at 40');
-  assert.strictEqual(engine.findRule('Aflac', 'TX', 'Final Expense - Modified', 78), null, 'Modified ends at 75');
-  assert.ok(engine.findRule('Aflac', 'TX', 'Final Expense - Level Benefit', 78), 'Level runs to 80');
-});
-
-test('Aflac Final Expense uses the 12 month advance', function () {
-  var r = engine.calculate({
-    carrier: 'Aflac', state: 'TX',
-    product: 'Final Expense - Level Benefit', age: 60, monthlyPremium: 100
-  });
-  assert.ok(r.found);
-  assert.strictEqual(r.advanceMonths, 12);
-  close(r.totalFirstYearCommission, 1296, 'total first year');
-  close(r.upfrontCommission, 1296, 'upfront');
-});
-
-test('Aflac Medicare Supplement state blocks match the schedule', function () {
-  var afg = 'Medicare Supplement - Plans A, F, G';
-  var n = 'Medicare Supplement - Plan N';
-  // Group 1 states plus Texas, which has its own block at the same rates.
-  ['LA', 'NC', 'TX'].forEach(function (st) {
-    close(engine.findRule('Aflac', st, afg, 60).rate, 0.008, st + ' under 65');
-    close(engine.findRule('Aflac', st, afg, 70).rate, 0.22, st + ' 65-79');
-    close(engine.findRule('Aflac', st, afg, 82).rate, 0.11, st + ' 80+');
-    close(engine.findRule('Aflac', st, n, 70).rate, 0.26, st + ' Plan N 65-79');
-  });
-  // Arizona is group 1 but has no under-65 availability.
-  assert.strictEqual(engine.findRule('Aflac', 'AZ', afg, 60), null, 'AZ has no under-65 plans');
-  close(engine.findRule('Aflac', 'AZ', afg, 70).rate, 0.22, 'AZ 65-79');
-  // Flat 7% states.
-  ['CA', 'ID', 'NV'].forEach(function (st) {
-    close(engine.findRule('Aflac', st, afg, 70).rate, 0.07, st + ' flat 7%');
-    close(engine.findRule('Aflac', st, n, 82).rate, 0.07, st + ' Plan N flat 7%');
-  });
-  close(engine.findRule('Aflac', 'VA', 'Medicare Supplement - All marketed plans (incl. Plan N)', 70).rate, 0.07, 'VA');
-  // Ohio has no under-65 row.
-  assert.strictEqual(engine.findRule('Aflac', 'OH', afg, 60), null, 'OH has no under-65 plans');
-  close(engine.findRule('Aflac', 'OH', afg, 70).rate, 0.21, 'OH 65-79');
-  close(engine.findRule('Aflac', 'OH', n, 82).rate, 0.125, 'OH Plan N 80+');
-});
-
-test('New Jersey Plan N has no under-65 rate but A/F/G/C/D does', function () {
-  close(engine.findRule('Aflac', 'NJ', 'Medicare Supplement - Plans A, F, G, C, D', 60).rate, 0.008, 'NJ C/D under 65');
-  assert.strictEqual(engine.findRule('Aflac', 'NJ', 'Medicare Supplement - Plan N', 60), null, 'NJ Plan N under 65');
-});
-
-console.log('\nAmerican Benefit Life (previously ambiguous state blocks)');
-
-test('New Jersey, Ohio and Nevada are now loaded', function () {
-  ['NJ', 'OH', 'NV'].forEach(function (st) {
-    var products = engine.getProducts('American Benefit Life', st);
-    ['Medicare Supplement - Plan A', 'Medicare Supplement - Plans F & G', 'Medicare Supplement - Plan N']
-      .forEach(function (p) {
-        assert.ok(products.indexOf(p) !== -1, st + ' should offer ' + p);
-      });
-  });
-});
-
-test('Nevada pays materially less than the other American Benefit Life states', function () {
-  var fg = 'Medicare Supplement - Plans F & G';
-  close(engine.findRule('American Benefit Life', 'NV', fg, 70).rate, 0.145, 'NV 65-79');
-  close(engine.findRule('American Benefit Life', 'NV', fg, 82).rate, 0.0225, 'NV 80+');
-  close(engine.findRule('American Benefit Life', 'NV', 'Medicare Supplement - Plan N', 70).rate, 0.20, 'NV Plan N 65-79');
-  close(engine.findRule('American Benefit Life', 'NV', 'Medicare Supplement - Plan N', 82).rate, 0.0475, 'NV Plan N 80+');
-  // Most states pay 24.50% / 12.25% on F&G.
-  close(engine.findRule('American Benefit Life', 'NJ', fg, 70).rate, 0.245, 'NJ 65-79');
-  close(engine.findRule('American Benefit Life', 'OH', fg, 70).rate, 0.245, 'OH 65-79');
-});
-
-test('Ohio has no under-65 rates, New Jersey has them only on Plan A', function () {
-  ['Medicare Supplement - Plan A', 'Medicare Supplement - Plans F & G', 'Medicare Supplement - Plan N']
-    .forEach(function (p) {
-      assert.strictEqual(engine.findRule('American Benefit Life', 'OH', p, 60), null, 'OH ' + p + ' under 65');
-    });
-  close(engine.findRule('American Benefit Life', 'NJ', 'Medicare Supplement - Plan A', 60).rate, 0.005, 'NJ Plan A under 65');
-  assert.strictEqual(engine.findRule('American Benefit Life', 'NJ', 'Medicare Supplement - Plans F & G', 60), null,
-    'NJ F&G has no under-65 rate');
-  assert.strictEqual(engine.findRule('American Benefit Life', 'NJ', 'Medicare Supplement - Plan N', 60), null,
-    'NJ Plan N has no under-65 rate');
-});
-
-test('New Jersey Plan A pays 0% at 80+, which is a rate not a missing lookup', function () {
-  var r = engine.calculate({
-    carrier: 'American Benefit Life', state: 'NJ',
-    product: 'Medicare Supplement - Plan A', age: 82, monthlyPremium: 100
-  });
-  assert.strictEqual(r.found, true);
-  assert.strictEqual(r.rate, 0);
-  assert.strictEqual(r.totalFirstYearCommission, 0);
-});
-
-test('previously loaded American Benefit Life states are unchanged', function () {
-  var fg = 'Medicare Supplement - Plans F & G';
-  close(engine.findRule('American Benefit Life', 'LA', fg, 70).rate, 0.245, 'LA group 1');
-  close(engine.findRule('American Benefit Life', 'VA', fg, 60).rate, 0.009, 'VA under 65');
-  assert.strictEqual(engine.findRule('American Benefit Life', 'AZ', fg, 60), null, 'AZ has no under-65 plans');
-  close(engine.findRule('American Benefit Life', 'FL', fg, 60).rate, 0.055, 'FL under 65');
-  close(engine.findRule('American Benefit Life', 'IL', fg, 60).rate, 0.0613, 'IL under 65');
-  close(engine.findRule('American Benefit Life', 'PA', 'Medicare Supplement - Plan A', 70).rate, 0.089, 'PA Plan A 65-79');
-  close(engine.findRule('American Benefit Life', 'NC', fg, 60).rate, 0.009, 'NC under 65');
-  close(engine.findRule('American Benefit Life', 'TX', fg, 70).rate, 0.245, 'TX 65-79');
-});
-
-console.log('\nGTL (portal rates panel)');
-
-test('GTL rates load with the 9 month advance', function () {
-  var cases = [
-    ['24HR', 0.45], ['ADV+', 0.50], ['Cancer 2.0', 0.45], ['CP+', 0.55],
-    ['Heritage', 0.80], ['HHC', 0.60], ['MedSup', 0.23], ['PCare', 0.45],
-    ['RecoverCash', 0.60]
-  ];
-  cases.forEach(function (c) {
-    var r = engine.calculate({
-      carrier: 'GTL', state: 'TX', product: c[0], age: 70, monthlyPremium: 100
-    });
-    assert.ok(r.found, c[0] + ' should resolve');
-    close(r.rate, c[1], c[0]);
-    assert.strictEqual(r.advanceMonths, 9, c[0] + ' advance');
-    close(r.upfrontCommission, 100 * 9 * c[1], c[0] + ' upfront');
-    close(r.remainingAsEarned, 100 * 3 * c[1], c[0] + ' remaining as-earned');
-  });
-});
-
-test('every GTL rule is flagged for verification', function () {
-  DATA.rules.filter(function (r) { return r.carrier === 'GTL'; }).forEach(function (r) {
-    assert.strictEqual(r.verify, true, r.product + ' should be flagged');
-    assert.ok(r.note && r.note.indexOf('no state or age breakdown') !== -1,
-      r.product + ' should say the source has no state or age breakdown');
-  });
-});
-
-test('GTL products with no rate on the panel are not loaded', function () {
-  var products = engine.getProducts('GTL', 'TX');
-  ['CCash', 'CHS Pro+', 'CI', 'DVH', 'LifeSelect', 'Indemnity Plus', 'IndGap'].forEach(function (p) {
-    assert.ok(products.indexOf(p) === -1, p + ' has no rate on the panel and must not be loaded');
-  });
-});
-
-test('GTL is no longer listed as a carrier without data', function () {
-  var names = (DATA.carriersWithoutData || []).map(function (c) { return c.name; });
-  assert.ok(names.indexOf('GTL') === -1);
-  assert.ok(engine.getCarriers().indexOf('GTL') !== -1, 'GTL should appear in the carrier dropdown');
 });
 
 console.log('\nLiberty Bankers (verified against the source PDF)');

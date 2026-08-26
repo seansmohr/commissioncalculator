@@ -46,12 +46,13 @@ These are omissions, not guesses. The calculator returns
 "Commission information not found for this selection." for anything below rather
 than estimating.
 
-1. **GTL — loaded, but from a rates panel rather than a schedule.** The source
-   is a screenshot of the carrier portal's "GTL Commission Rates" list, which
-   gives a first-year/renewal pair per product code and nothing else. Nine
-   products have rates and are loaded; **every GTL rule is flagged for
-   verification** and shows a caution note on the results card. Three things are
-   worth resolving before relying on it:
+1. **GTL — a rates panel is all the carrier provides.** The source is the
+   carrier portal's "GTL Commission Rates" list, which gives a first-year/renewal
+   pair per product code and nothing else. The agency has confirmed this is what
+   GTL supplies, so the rules are **not** flagged for verification — there is no
+   fuller schedule to check them against. Each GTL result does carry a note
+   saying the rate has no state or age breakdown. The limitations to keep in
+   mind:
 
    - **No state breakdown.** The panel does not vary by state, so the rules are
      written to all 13 appointed states. If GTL's rates actually differ by
@@ -61,8 +62,9 @@ than estimating.
      hardest**: every other carrier in this calculator varies Medicare
      Supplement by age (under 65 / 65-79 / 80+), so a single flat rate is
      unusual and may be a headline figure rather than the whole picture.
-   - **The panel is cut off** at "GmGap" and "SupSel", so there may be further
-     products below the visible area.
+   - **The panel screenshot is cut off** at "GmGap" and "SupSel", so there may be
+     further products below the visible area. A second screenshot scrolled down
+     would complete the list.
 
    Products listed on the panel with **no rate shown** are deliberately not
    loaded: CCash, CHS Pro+, CI, DVH, LifeSelect, Indemnity Plus, IndGap.
@@ -228,21 +230,23 @@ One error was found and fixed: **Nevada belongs in the top Short Term Care band*
 first transcribed, so Nevada Short Term Care returned "not found" instead of a
 rate. Every other Short Term Care band was correct.
 
-### Mutual of Omaha — Pennsylvania needs a decision
+### Mutual of Omaha — Pennsylvania resolved
 
-Pennsylvania Long Term Care has **two different new-business scales** depending
-on whether the writing General Agent has other General Agents in their downline:
+Pennsylvania Long Term Care has two new-business scales depending on whether the
+writing General Agent has other General Agents in their downline. **The agency
+has confirmed it has no downline General Agents**, so the lower scale applies and
+the other has been removed:
 
 | | Under 70 | 70-74 | 75-79 |
 |---|---|---|---|
-| With downline General Agents | 60% | 40% | 35% |
-| No downline General Agents | 50% | 30% | 25% |
+| Individual (loaded) | 50% | 30% | 25% |
+| Association / Sponsored Group (loaded) | 45% | 25% | 20% |
+| *Downline-GA scale (not loaded)* | *60% / 55%* | *40% / 35%* | *35% / 30%* |
 
-Which one applies to Mohr Insurance Services is a fact about our contract, not
-something in the schedule, so both are loaded as separate products rather than
-one being assumed. **Once confirmed, the other should be deleted** so the
-Pennsylvania dropdown has a single entry. California and Virginia have no such
-split and were verified correct.
+Pennsylvania now offers the same two products as California and Virginia, at its
+own rates. **Revisit this if the agency ever takes on downline General Agents** —
+the rules carry a note to that effect. California and Virginia pay the higher
+scale and were verified correct.
 
 ## Aetna: fully transcribed
 
@@ -270,9 +274,9 @@ appointed in the only states they cover: Cancer and Heart Attack or Stroke
 
 ## Flagged for spot-check
 
-The only rules still carrying a `verify` flag — and a caution note on the
-results card — are **GTL's**, because that carrier's source is a portal rates
-panel rather than a commission schedule. See gap 1 above.
+Nothing. Every rule has been checked against its carrier's own schedule, except
+GTL's, where the portal rates panel is the only source the carrier provides and
+a caution to "check the schedule" would point at a document that does not exist.
 
 ## Discrepancy worth knowing about
 

@@ -417,18 +417,14 @@
 
     // Pennsylvania pays two different new-business scales depending on whether
     // the writing General Agent has other General Agents in their downline.
-    // Both are listed so the correct one can be chosen rather than assumed.
-    var withDownline = 'Pennsylvania rate for a writing General Agent who HAS other General Agents reporting to them in their downline distribution.';
-    var noDownline = 'Pennsylvania rate for a writing General Agent who does NOT have other General Agents reporting to them in their downline distribution.';
+    // The agency has confirmed it has no downline General Agents, so the lower
+    // scale applies. (The downline scale would be 60/40/35 and 55/35/30.)
+    var paNote = 'Pennsylvania pays a lower scale to a writing General Agent with no downline General Agents. Revisit this if the agency ever takes on downline GAs.';
 
-    ltc(['PA'], 'Long Term Care - Individual (new business, with downline General Agents)',
-      [[null, 69, 0.60], [70, 74, 0.40], [75, 79, 0.35]], withDownline);
-    ltc(['PA'], 'Long Term Care - Association / Sponsored Group / Common Employer (new business, with downline General Agents)',
-      [[null, 69, 0.55], [70, 74, 0.35], [75, 79, 0.30]], withDownline);
-    ltc(['PA'], 'Long Term Care - Individual (new business, no downline General Agents)',
-      [[null, 69, 0.50], [70, 74, 0.30], [75, 79, 0.25]], noDownline);
-    ltc(['PA'], 'Long Term Care - Association / Sponsored Group / Common Employer (new business, no downline General Agents)',
-      [[null, 69, 0.45], [70, 74, 0.25], [75, 79, 0.20]], noDownline);
+    ltc(['PA'], 'Long Term Care - Individual (new business)',
+      [[null, 69, 0.50], [70, 74, 0.30], [75, 79, 0.25]], paNote);
+    ltc(['PA'], 'Long Term Care - Association / Sponsored Group / Common Employer (new business)',
+      [[null, 69, 0.45], [70, 74, 0.25], [75, 79, 0.20]], paNote);
   }());
 
   // ===========================================================================
@@ -1403,7 +1399,10 @@
   // below does not affect the calculation.
   // ===========================================================================
   (function gtl() {
-    var src = 'From the GTL Commission Rates panel, which gives a first-year rate only - no state or age breakdown. Confirm before quoting a large case.';
+    // This panel is what GTL provides - there is no fuller commission schedule to
+    // check against - so the rules are not flagged for verification. The note is
+    // kept so the reader knows the source carries no state or age breakdown.
+    var src = 'GTL supplies a rates panel rather than a commission schedule, so this first-year rate carries no state or age breakdown.';
 
     [
       ['24HR', 0.45, 'ancillary'],
@@ -1421,8 +1420,7 @@
         product: row[0], rate: row[1],
         note: row[0] === 'ADV+'
           ? src + ' The panel also shows "N25" against this product; its meaning is not established.'
-          : src,
-        verify: true
+          : src
       }]);
     });
   }());
