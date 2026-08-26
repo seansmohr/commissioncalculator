@@ -44,11 +44,14 @@ percentage.
 Supplement Plan N than for its other plans, Plan N is a separate product in the
 dropdown with its own rate.
 
-**MAPD works differently, and the form adapts.** Medicare Advantage pays a flat
-CMS-capped amount per enrollment rather than a percentage of premium, so
-selecting the MAPD carrier swaps the Age and Monthly Premium inputs for
-Enrollment Type, Current Coverage and Effective Date. Everything else — the
-carrier, state and product dropdowns, and the results card — stays the same.
+**Two tabs, one calculator.** *Medicare Supplement & Ancillary* is the carrier
+flow above. *MAPD* is its own tab because Medicare Advantage pays a flat
+CMS-capped amount per enrollment rather than a percentage of premium — the
+amount is the same whichever carrier writes it, so there is no carrier to pick
+and no premium to enter. The MAPD tab asks for State, Enrollment Type, Current
+Coverage and Effective Date, and shares the same results card. Switching tabs
+keeps your state selection where it still applies and clears it where it does
+not.
 
 **Advances are per carrier *and* product — and sometimes per age.** Bankers
 Fidelity advances 9 months on Medicare Supplement and 6 months on ancillary.

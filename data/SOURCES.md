@@ -35,8 +35,9 @@ AZ, CA, FL, ID, IL, LA, NC, NJ, NV, OH, PA, TX, VA. Rules are limited to these
 MAPD is held separately from the carrier rules because it works differently: it
 pays a **flat CMS-capped dollar amount per enrollment**, identical whichever
 carrier the plan is written through, varying only by state group and effective
-year. It is therefore offered under its own entry in the carrier list rather
-than duplicated under every carrier, and it takes no age or premium.
+year. It is therefore reached by its own tab rather than being
+duplicated as a product under all twelve carriers, and it takes no carrier, age
+or premium.
 
 | Group | States | 2026 Initial / Renewal | 2027 Initial / Renewal |
 |---|---|---|---|

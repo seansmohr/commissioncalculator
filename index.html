@@ -14,8 +14,17 @@
       <p class="page__sub">Enter the policy you sold and see what the agency should be paid.</p>
     </header>
 
+    <div class="tabs" role="tablist" aria-label="Calculator type">
+      <button type="button" class="tab tab--active" id="tab-standard" role="tab" aria-selected="true">
+        Medicare Supplement &amp; Ancillary
+      </button>
+      <button type="button" class="tab" id="tab-mapd" role="tab" aria-selected="false">
+        MAPD
+      </button>
+    </div>
+
     <form id="calc-form" class="card" autocomplete="off">
-      <div class="field">
+      <div class="field" id="carrier-field">
         <label for="carrier">Carrier</label>
         <select id="carrier" name="carrier" required>
           <option value="">Select a carrier</option>
@@ -29,7 +38,7 @@
         </select>
       </div>
 
-      <div class="field">
+      <div class="field" id="product-field">
         <label for="product">Product</label>
         <select id="product" name="product" required disabled>
           <option value="">Select a state first</option>

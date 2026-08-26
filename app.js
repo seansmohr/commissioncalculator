@@ -13,7 +13,12 @@
   var resultsEl = document.getElementById('results');
   var coverageNoteEl = document.getElementById('coverage-note');
 
-  // MAPD-only fields, hidden unless the MAPD carrier is selected.
+  var tabStandardEl = document.getElementById('tab-standard');
+  var tabMapdEl = document.getElementById('tab-mapd');
+  var carrierFieldEl = document.getElementById('carrier-field');
+  var productFieldEl = document.getElementById('product-field');
+
+  // MAPD-only fields, hidden unless the MAPD tab is active.
   var premiumFieldsEl = document.getElementById('premium-fields');
   var mapdFieldsEl = document.getElementById('mapd-fields');
   var enrollmentEl = document.getElementById('enrollment-type');
@@ -55,17 +60,29 @@
     productEl.disabled = true;
   }
 
-  function isMapdSelected() {
-    return engine.isMapd(carrierEl.value);
-  }
+  var mode = 'standard';
+
+  function isMapdSelected() { return mode === 'mapd'; }
 
   /**
-   * Swap the premium inputs for the MAPD inputs. Hidden inputs are also
-   * disabled so the browser does not block submit on a required field nobody
-   * can see.
+   * Switch between the two calculators. Hidden inputs are also disabled so the
+   * browser cannot block submit on a required field nobody can see.
    */
-  function applyMode() {
-    var mapd = isMapdSelected();
+  function setMode(next) {
+    mode = next;
+    var mapd = next === 'mapd';
+
+    tabStandardEl.classList.toggle('tab--active', !mapd);
+    tabMapdEl.classList.toggle('tab--active', mapd);
+    tabStandardEl.setAttribute('aria-selected', String(!mapd));
+    tabMapdEl.setAttribute('aria-selected', String(mapd));
+
+    // MAPD needs no carrier and has only one product, so both are put away.
+    carrierFieldEl.hidden = mapd;
+    productFieldEl.hidden = mapd;
+    carrierEl.disabled = mapd;
+    productEl.disabled = mapd || !stateEl.value;
+
     premiumFieldsEl.hidden = mapd;
     mapdFieldsEl.hidden = !mapd;
     ageEl.disabled = mapd;
@@ -73,7 +90,44 @@
     enrollmentEl.disabled = !mapd;
     coverageEl.disabled = !mapd;
     effectiveDateEl.disabled = !mapd;
+
+    clearResults();
+
+    if (mapd) {
+      // MAPD is written in every licensed state, so the list is fixed.
+      var keep = stateEl.value;
+      setOptions(stateEl, engine.getMapdStates().map(function (st) {
+        return { value: st.code, label: st.name };
+      }), 'Select a state');
+      stateEl.disabled = false;
+      if (keep) { stateEl.value = keep; }
+    } else {
+      var carrier = carrierEl.value;
+      if (!carrier) {
+        resetState('Select a carrier first');
+        resetProduct('Select a state first');
+        return;
+      }
+      var previous = stateEl.value;
+      setOptions(stateEl, engine.getStates(carrier).map(function (st) {
+        return { value: st.code, label: st.name };
+      }), 'Select a state');
+      stateEl.disabled = false;
+      stateEl.value = previous;
+      if (stateEl.value) { populateProducts(); } else { resetProduct('Select a state first'); }
+    }
   }
+
+  function populateProducts() {
+    var products = engine.getProducts(carrierEl.value, stateEl.value).map(function (p) {
+      return { value: p, label: p };
+    });
+    setOptions(productEl, products, 'Select a product');
+    productEl.disabled = false;
+  }
+
+  tabStandardEl.addEventListener('click', function () { setMode('standard'); });
+  tabMapdEl.addEventListener('click', function () { setMode('mapd'); });
 
   // --- Dependent dropdowns ---------------------------------------------------
 
@@ -91,7 +145,6 @@
 
   carrierEl.addEventListener('change', function () {
     clearResults();
-    applyMode();
     var carrier = carrierEl.value;
     if (!carrier) {
       resetState('Select a carrier first');
@@ -108,17 +161,12 @@
 
   stateEl.addEventListener('change', function () {
     clearResults();
-    var carrier = carrierEl.value;
-    var state = stateEl.value;
-    if (!carrier || !state) {
+    if (isMapdSelected()) { maybeAutoCalculate(); return; }
+    if (!carrierEl.value || !stateEl.value) {
       resetProduct('Select a state first');
       return;
     }
-    var products = engine.getProducts(carrier, state).map(function (p) {
-      return { value: p, label: p };
-    });
-    setOptions(productEl, products, 'Select a product');
-    productEl.disabled = false;
+    populateProducts();
   });
 
   productEl.addEventListener('change', clearResults);
@@ -130,13 +178,13 @@
   });
 
   function maybeAutoCalculate() {
-    if (!carrierEl.value || !stateEl.value || !productEl.value) { return; }
     if (isMapdSelected()) {
-      if (enrollmentEl.value && coverageEl.value && effectiveDateEl.value) {
+      if (stateEl.value && enrollmentEl.value && coverageEl.value && effectiveDateEl.value) {
         render(runCalculation());
       }
       return;
     }
+    if (!carrierEl.value || !stateEl.value || !productEl.value) { return; }
     if (ageEl.value !== '' && premiumEl.value !== '') {
       render(runCalculation());
     }
@@ -149,8 +197,7 @@
 
   function runCalculation() {
     if (isMapdSelected()) {
-      return engine.calculate({
-        carrier: carrierEl.value,
+      return engine.calculateMapd({
         state: stateEl.value,
         enrollmentType: enrollmentEl.value,
         currentCoverage: coverageEl.value,

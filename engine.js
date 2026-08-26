@@ -33,11 +33,17 @@
 
   function isMapd(carrier) { return !!MAPD && carrier === MAPD.carrier; }
 
-  /** Every carrier we hold at least one commission rule for, plus MAPD. */
+  /**
+   * Every carrier we hold percentage-of-premium rules for. MAPD is deliberately
+   * absent: it is not a carrier, and the UI reaches it with its own tab.
+   */
   function getCarriers() {
-    var list = unique(DATA.rules.map(function (r) { return r.carrier; })).sort();
-    if (MAPD) { list.push(MAPD.carrier); }
-    return list;
+    return unique(DATA.rules.map(function (r) { return r.carrier; })).sort();
+  }
+
+  /** The states MAPD can be written in, as [{code, name}]. */
+  function getMapdStates() {
+    return getStates(MAPD.carrier);
   }
 
   /** States this carrier has rules for, as [{code, name}], appointed states only. */
@@ -326,6 +332,8 @@
     findRule: findRule,
     getAdvanceMonths: getAdvanceMonths,
     calculate: calculate,
+    MAPD_CARRIER: MAPD ? MAPD.carrier : null,
+    getMapdStates: getMapdStates,
     isMapd: isMapd,
     mapdStateGroup: mapdStateGroup,
     mapdCommissionType: mapdCommissionType,

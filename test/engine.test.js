@@ -927,23 +927,39 @@ console.log('\nMAPD');
 var MAPD_CARRIER = 'MAPD (Medicare Advantage)';
 
 function mapd(state, enrollmentType, currentCoverage, effectiveDate) {
-  return engine.calculate({
-    carrier: MAPD_CARRIER, state: state, enrollmentType: enrollmentType,
+  return engine.calculateMapd({
+    state: state, enrollmentType: enrollmentType,
     currentCoverage: currentCoverage, effectiveDate: effectiveDate
   });
 }
 
-test('MAPD appears as a carrier and offers only the MAPD product', function () {
-  assert.ok(engine.getCarriers().indexOf(MAPD_CARRIER) !== -1, 'MAPD should be selectable');
+test('calculate() still delegates to the MAPD path when handed the MAPD carrier', function () {
+  var viaCalculate = engine.calculate({
+    carrier: MAPD_CARRIER, state: 'CA', enrollmentType: 'AEP',
+    currentCoverage: 'MAPD', effectiveDate: '2026-09-01'
+  });
+  var direct = engine.calculateMapd({
+    state: 'CA', enrollmentType: 'AEP', currentCoverage: 'MAPD', effectiveDate: '2026-09-01'
+  });
+  assert.deepStrictEqual(viaCalculate, direct);
+});
+
+test('MAPD is not a carrier and stays out of the carrier list', function () {
+  var carriers = engine.getCarriers();
+  assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
+  assert.strictEqual(carriers.length, 12, 'the carrier list is the twelve real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
-  assert.deepStrictEqual(engine.getProducts(MAPD_CARRIER, 'CA'), ['MAPD']);
+  assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
 });
 
 test('MAPD covers exactly the 13 licensed states', function () {
-  var states = engine.getStates(MAPD_CARRIER).map(function (s) { return s.code; }).sort();
+  var states = engine.getMapdStates().map(function (s) { return s.code; }).sort();
   assert.deepStrictEqual(states,
     ['AZ', 'CA', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'].sort());
+  states.forEach(function (code) {
+    assert.deepStrictEqual(engine.getProducts(MAPD_CARRIER, code), ['MAPD'], code);
+  });
 });
 
 test('state groups follow the spec', function () {
