@@ -44,6 +44,12 @@ percentage.
 Supplement Plan N than for its other plans, Plan N is a separate product in the
 dropdown with its own rate.
 
+**MAPD works differently, and the form adapts.** Medicare Advantage pays a flat
+CMS-capped amount per enrollment rather than a percentage of premium, so
+selecting the MAPD carrier swaps the Age and Monthly Premium inputs for
+Enrollment Type, Current Coverage and Effective Date. Everything else — the
+carrier, state and product dropdowns, and the results card — stays the same.
+
 **Advances are per carrier *and* product — and sometimes per age.** Bankers
 Fidelity advances 9 months on Medicare Supplement and 6 months on ancillary.
 Liberty Bankers advances 9 months on ancillary and nothing on Medicare
@@ -57,6 +63,33 @@ which source it came from.
 Annualized Premium          = Monthly Premium × 12
 Total First-Year Commission = Annualized Premium × Commission Rate
 ```
+
+### MAPD
+
+MAPD pays a flat annual amount set by state group and effective year, so there
+is no premium in the calculation. What the member is switching *from* decides
+the rate — not which enrollment period they used:
+
+| Current coverage | Commission type |
+|---|---|
+| New to Medicare, Original Medicare, PDP, Employer Group Plan | Initial / FYC |
+| MA, MAPD | Renewal / Like-Plan |
+
+Initial/FYC pays the full initial rate. A like-plan renewal is prorated over the
+months the member will be active on the new plan this year:
+
+```
+Months Active       = 13 − effective month
+Expected Commission = Annual Renewal Rate ÷ 12 × Months Active
+```
+
+So a Texas MAPD-to-MAPD switch effective 1 September 2026 pays
+`$347 ÷ 12 × 4 = $115.67`, while the same switch effective 1 January pays the
+full `$347`.
+
+State groups are **CA/NJ**, **PA**, and **National** (the other ten licensed
+states). Rates are on file for 2026 and 2027; an effective date in any other
+year returns a message naming the year rather than guessing.
 
 With an advance of *N* months:
 

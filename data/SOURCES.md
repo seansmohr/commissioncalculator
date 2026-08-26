@@ -30,6 +30,29 @@ Appointed states come from column F of the same spreadsheet:
 AZ, CA, FL, ID, IL, LA, NC, NJ, NV, OH, PA, TX, VA. Rules are limited to these
 13 states, so the state dropdown only ever offers states we can actually write in.
 
+## MAPD
+
+MAPD is held separately from the carrier rules because it works differently: it
+pays a **flat CMS-capped dollar amount per enrollment**, identical whichever
+carrier the plan is written through, varying only by state group and effective
+year. It is therefore offered under its own entry in the carrier list rather
+than duplicated under every carrier, and it takes no age or premium.
+
+| Group | States | 2026 Initial / Renewal | 2027 Initial / Renewal |
+|---|---|---|---|
+| CA/NJ | CA, NJ | $864 / $432 | $902 / $451 |
+| PA | PA | $781 / $391 | $816 / $408 |
+| National | AZ, NV, LA, TX, NC, ID, OH, IL, VA, FL | $694 / $347 | $725 / $363 |
+
+The member's **current coverage** decides Initial/FYC versus Renewal — New to
+Medicare, Original Medicare, PDP and Employer Group Plan are Initial; MA and
+MAPD are like-plan Renewals. Enrollment type (IEP / AEP / SEP) is recorded for
+tracking and deliberately does **not** affect the rate.
+
+Renewals are prorated as `annual rate ÷ 12 × (13 − effective month)`. Initial/FYC
+is never prorated. An effective date outside 2026-2027 returns a message naming
+the year rather than falling back to a nearby schedule.
+
 ## What's modeled
 
 Rates in the lookup table are **first-year (policy year 1)** rates, since that

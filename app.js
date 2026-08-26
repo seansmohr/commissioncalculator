@@ -13,6 +13,14 @@
   var resultsEl = document.getElementById('results');
   var coverageNoteEl = document.getElementById('coverage-note');
 
+  // MAPD-only fields, hidden unless the MAPD carrier is selected.
+  var premiumFieldsEl = document.getElementById('premium-fields');
+  var mapdFieldsEl = document.getElementById('mapd-fields');
+  var enrollmentEl = document.getElementById('enrollment-type');
+  var coverageEl = document.getElementById('current-coverage');
+  var effectiveDateEl = document.getElementById('effective-date');
+  var mapdData = engine.data.mapd;
+
   var money = new Intl.NumberFormat('en-US', {
     style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2
   });
@@ -47,14 +55,43 @@
     productEl.disabled = true;
   }
 
+  function isMapdSelected() {
+    return engine.isMapd(carrierEl.value);
+  }
+
+  /**
+   * Swap the premium inputs for the MAPD inputs. Hidden inputs are also
+   * disabled so the browser does not block submit on a required field nobody
+   * can see.
+   */
+  function applyMode() {
+    var mapd = isMapdSelected();
+    premiumFieldsEl.hidden = mapd;
+    mapdFieldsEl.hidden = !mapd;
+    ageEl.disabled = mapd;
+    premiumEl.disabled = mapd;
+    enrollmentEl.disabled = !mapd;
+    coverageEl.disabled = !mapd;
+    effectiveDateEl.disabled = !mapd;
+  }
+
   // --- Dependent dropdowns ---------------------------------------------------
 
   setOptions(carrierEl, engine.getCarriers().map(function (c) {
     return { value: c, label: c };
   }), 'Select a carrier');
 
+  // MAPD dropdown contents never change, so fill them once.
+  setOptions(enrollmentEl, mapdData.enrollmentTypes.map(function (t) {
+    return { value: t, label: t };
+  }), 'Select an enrollment type');
+  setOptions(coverageEl, mapdData.currentCoverage.map(function (c) {
+    return { value: c.value, label: c.value };
+  }), 'Select the member\u2019s current coverage');
+
   carrierEl.addEventListener('change', function () {
     clearResults();
+    applyMode();
     var carrier = carrierEl.value;
     if (!carrier) {
       resetState('Select a carrier first');
@@ -87,13 +124,20 @@
   productEl.addEventListener('change', clearResults);
 
   // Recalculate live once every field has a value.
-  [ageEl, premiumEl, productEl].forEach(function (el) {
+  [ageEl, premiumEl, productEl, enrollmentEl, coverageEl, effectiveDateEl].forEach(function (el) {
     el.addEventListener('input', maybeAutoCalculate);
     el.addEventListener('change', maybeAutoCalculate);
   });
 
   function maybeAutoCalculate() {
-    if (carrierEl.value && stateEl.value && productEl.value && ageEl.value !== '' && premiumEl.value !== '') {
+    if (!carrierEl.value || !stateEl.value || !productEl.value) { return; }
+    if (isMapdSelected()) {
+      if (enrollmentEl.value && coverageEl.value && effectiveDateEl.value) {
+        render(runCalculation());
+      }
+      return;
+    }
+    if (ageEl.value !== '' && premiumEl.value !== '') {
       render(runCalculation());
     }
   }
@@ -104,6 +148,15 @@
   });
 
   function runCalculation() {
+    if (isMapdSelected()) {
+      return engine.calculate({
+        carrier: carrierEl.value,
+        state: stateEl.value,
+        enrollmentType: enrollmentEl.value,
+        currentCoverage: coverageEl.value,
+        effectiveDate: effectiveDateEl.value
+      });
+    }
     return engine.calculate({
       carrier: carrierEl.value,
       state: stateEl.value,
@@ -151,6 +204,12 @@
     var h = document.createElement('h2');
     h.textContent = 'Expected Commission';
     card.appendChild(h);
+
+    if (result.kind === 'mapd') {
+      renderMapd(card, result);
+      resultsEl.appendChild(card);
+      return;
+    }
 
     var top = document.createElement('div');
     top.className = 'result-group';
@@ -210,6 +269,56 @@
     }
 
     resultsEl.appendChild(card);
+  }
+
+  /** MAPD result rows, using the same card and row structure as everything else. */
+  function renderMapd(card, r) {
+    var top = document.createElement('div');
+    top.className = 'result-group';
+    top.appendChild(row('Product', r.product));
+    top.appendChild(row('State', r.stateName));
+    top.appendChild(row('Enrollment Type', r.enrollmentType));
+    top.appendChild(row('Current Coverage', r.currentCoverage));
+    top.appendChild(row('Effective Date', formatDate(r.effectiveDate)));
+    card.appendChild(top);
+
+    var mid = document.createElement('div');
+    mid.className = 'result-group';
+    mid.appendChild(row('State Group', r.stateGroup));
+    mid.appendChild(row('Commission Type', r.commissionTypeLabel));
+    mid.appendChild(row(
+      'Annual Commission Rate',
+      money.format(r.annualRate) + ' (' + r.effectiveYear + ' schedule)'
+    ));
+    if (r.monthsActive !== null) {
+      mid.appendChild(row('Months Active', String(r.monthsActive)));
+    }
+    card.appendChild(mid);
+
+    var bottom = document.createElement('div');
+    bottom.className = 'result-group';
+    bottom.appendChild(row('Expected Commission', money.format(r.expectedCommission), { strong: true }));
+    card.appendChild(bottom);
+
+    if (r.prorated) {
+      card.appendChild(noteEl(
+        'Prorated: a like-plan switch pays for the ' + r.monthsActive +
+        ' month' + (r.monthsActive === 1 ? '' : 's') +
+        ' the member is active on the new plan this year.'
+      ));
+    }
+    if (r.note) {
+      card.appendChild(noteEl(r.note, 'muted'));
+    }
+  }
+
+  /** yyyy-mm-dd as a readable date, without letting a timezone shift the day. */
+  function formatDate(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if (!m) { return iso || ''; }
+    var months = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    return months[Number(m[2]) - 1] + ' ' + Number(m[3]) + ', ' + m[1];
   }
 
   function noteEl(text, kind) {

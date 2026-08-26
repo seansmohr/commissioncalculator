@@ -76,7 +76,9 @@ test('age bands within a carrier/state/product do not overlap', function () {
 });
 
 test('every product listed in a dropdown resolves for at least one age', function () {
-  engine.getCarriers().forEach(function (carrier) {
+  // MAPD pays a flat amount per enrollment rather than an age-banded rate, so
+  // it is checked separately below.
+  engine.getCarriers().filter(function (c) { return !engine.isMapd(c); }).forEach(function (carrier) {
     engine.getStates(carrier).forEach(function (state) {
       engine.getProducts(carrier, state.code).forEach(function (product) {
         var hit = false;
@@ -918,6 +920,144 @@ test('Bankers Fidelity Medicare Supplement and ancillary rates match the source'
   close(engine.findRule('Bankers Fidelity', 'AZ', 'Vantage Recovery (Short-Term Care)', 60).rate, 0.50, 'AZ Recovery');
   close(engine.findRule('Bankers Fidelity', 'TX', 'LifeVantage Secure Final Expense Whole Life', 60).rate, 1.35, 'FE 45-75');
   close(engine.findRule('Bankers Fidelity', 'TX', 'LifeVantage Secure Final Expense Whole Life', 80).rate, 0.875, 'FE 76-85');
+});
+
+console.log('\nMAPD');
+
+var MAPD_CARRIER = 'MAPD (Medicare Advantage)';
+
+function mapd(state, enrollmentType, currentCoverage, effectiveDate) {
+  return engine.calculate({
+    carrier: MAPD_CARRIER, state: state, enrollmentType: enrollmentType,
+    currentCoverage: currentCoverage, effectiveDate: effectiveDate
+  });
+}
+
+test('MAPD appears as a carrier and offers only the MAPD product', function () {
+  assert.ok(engine.getCarriers().indexOf(MAPD_CARRIER) !== -1, 'MAPD should be selectable');
+  assert.ok(engine.isMapd(MAPD_CARRIER));
+  assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
+  assert.deepStrictEqual(engine.getProducts(MAPD_CARRIER, 'CA'), ['MAPD']);
+});
+
+test('MAPD covers exactly the 13 licensed states', function () {
+  var states = engine.getStates(MAPD_CARRIER).map(function (s) { return s.code; }).sort();
+  assert.deepStrictEqual(states,
+    ['AZ', 'CA', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'].sort());
+});
+
+test('state groups follow the spec', function () {
+  ['CA', 'NJ'].forEach(function (st) { assert.strictEqual(engine.mapdStateGroup(st), 'CA/NJ', st); });
+  assert.strictEqual(engine.mapdStateGroup('PA'), 'PA');
+  ['AZ', 'NV', 'LA', 'TX', 'NC', 'ID', 'OH', 'IL', 'VA', 'FL'].forEach(function (st) {
+    assert.strictEqual(engine.mapdStateGroup(st), 'National', st);
+  });
+  assert.strictEqual(engine.mapdStateGroup('NY'), null, 'an unlicensed state has no group');
+});
+
+test('current coverage decides Initial vs Renewal, not enrollment type', function () {
+  ['New to Medicare', 'Original Medicare', 'PDP', 'Employer Group Plan'].forEach(function (c) {
+    assert.strictEqual(engine.mapdCommissionType(c), 'initial', c);
+  });
+  ['MA', 'MAPD'].forEach(function (c) {
+    assert.strictEqual(engine.mapdCommissionType(c), 'renewal', c);
+  });
+  // Same coverage, all three enrollment periods, same answer.
+  ['IEP', 'AEP', 'SEP'].forEach(function (e) {
+    var r = mapd('TX', e, 'Original Medicare', '2027-01-01');
+    assert.strictEqual(r.commissionType, 'initial', e + ' should not change the commission type');
+    close(r.expectedCommission, 725, e);
+  });
+});
+
+test('every worked example from the spec', function () {
+  var cases = [
+    // state, enrollment, coverage, effective, group, type, annual, months, expected
+    ['CA', 'AEP', 'MAPD', '2026-09-01', 'CA/NJ', 'renewal', 432, 4, 144],
+    ['PA', 'AEP', 'MAPD', '2027-01-01', 'PA', 'renewal', 408, 12, 408],
+    ['TX', 'SEP', 'MAPD', '2026-09-01', 'National', 'renewal', 347, 4, 115.67],
+    ['NJ', 'IEP', 'New to Medicare', '2026-10-01', 'CA/NJ', 'initial', 864, null, 864],
+    ['CA', 'IEP', 'New to Medicare', '2027-01-01', 'CA/NJ', 'initial', 902, null, 902],
+    ['TX', 'AEP', 'Original Medicare', '2027-01-01', 'National', 'initial', 725, null, 725]
+  ];
+  cases.forEach(function (c) {
+    var r = mapd(c[0], c[1], c[2], c[3]);
+    var label = c[0] + '/' + c[2] + '/' + c[3];
+    assert.ok(r.found, label);
+    assert.strictEqual(r.stateGroup, c[4], label + ' group');
+    assert.strictEqual(r.commissionType, c[5], label + ' type');
+    close(r.annualRate, c[6], label + ' annual rate');
+    assert.strictEqual(r.monthsActive, c[7], label + ' months active');
+    close(r.expectedCommission, c[8], label + ' expected commission');
+  });
+});
+
+test('the effective year picks the schedule', function () {
+  close(mapd('CA', 'AEP', 'New to Medicare', '2026-06-15').annualRate, 864, '2026 CA/NJ initial');
+  close(mapd('CA', 'AEP', 'New to Medicare', '2027-06-15').annualRate, 902, '2027 CA/NJ initial');
+  close(mapd('PA', 'AEP', 'MA', '2026-01-01').annualRate, 391, '2026 PA renewal');
+  close(mapd('PA', 'AEP', 'MA', '2027-01-01').annualRate, 408, '2027 PA renewal');
+  var r = mapd('TX', 'AEP', 'MAPD', '2028-01-01');
+  assert.strictEqual(r.found, false, 'a year with no schedule must not be estimated');
+  assert.ok(/2028/.test(r.message), 'the message should name the year');
+});
+
+test('renewal proration runs across every month', function () {
+  for (var m = 1; m <= 12; m++) {
+    var iso = '2026-' + (m < 10 ? '0' + m : m) + '-01';
+    var r = mapd('TX', 'AEP', 'MA', iso);
+    assert.strictEqual(r.monthsActive, 13 - m, 'month ' + m);
+    close(r.expectedCommission, Math.round(347 / 12 * (13 - m) * 100) / 100, 'month ' + m);
+  }
+  // January pays the full annual renewal rate; December pays one month.
+  close(mapd('TX', 'AEP', 'MA', '2026-01-01').expectedCommission, 347, 'January');
+  close(mapd('TX', 'AEP', 'MA', '2026-12-01').expectedCommission, 28.92, 'December');
+});
+
+test('Initial/FYC is never prorated', function () {
+  ['2026-01-01', '2026-07-01', '2026-12-01'].forEach(function (d) {
+    var r = mapd('NJ', 'IEP', 'New to Medicare', d);
+    close(r.expectedCommission, 864, d);
+    assert.strictEqual(r.monthsActive, null, d + ' has no months-active figure');
+    assert.strictEqual(r.prorated, false, d);
+  });
+});
+
+test('MA and MAPD both count as like-plan renewals', function () {
+  var fromMa = mapd('CA', 'AEP', 'MA', '2026-09-01');
+  var fromMapd = mapd('CA', 'AEP', 'MAPD', '2026-09-01');
+  close(fromMa.expectedCommission, 144, 'MA switch');
+  close(fromMapd.expectedCommission, 144, 'MAPD switch');
+});
+
+test('MAPD rejects bad input rather than guessing', function () {
+  assert.strictEqual(mapd('NY', 'AEP', 'MAPD', '2026-09-01').found, false, 'unlicensed state');
+  assert.strictEqual(mapd('TX', 'XYZ', 'MAPD', '2026-09-01').found, false, 'unknown enrollment type');
+  assert.strictEqual(mapd('TX', 'AEP', 'Something Else', '2026-09-01').found, false, 'unknown coverage');
+  ['', '09/01/2026', '2026-13-01', 'not a date'].forEach(function (d) {
+    assert.strictEqual(mapd('TX', 'AEP', 'MAPD', d).found, false, 'bad date: ' + JSON.stringify(d));
+  });
+});
+
+test('MAPD results carry no advance or premium fields', function () {
+  var r = mapd('CA', 'AEP', 'MAPD', '2026-09-01');
+  assert.strictEqual(r.kind, 'mapd');
+  assert.strictEqual(r.advanceMonths, undefined, 'MAPD is not advanced');
+  assert.strictEqual(r.monthlyPremium, undefined, 'MAPD does not use premium');
+  assert.strictEqual(r.rate, undefined, 'MAPD is not a percentage of premium');
+});
+
+test('existing percentage-of-premium carriers are untouched by MAPD', function () {
+  var r = engine.calculate({
+    carrier: 'Aetna Senior Supplemental', state: 'CA',
+    product: 'Medicare Supplement - All marketed plans (incl. Plan N)',
+    age: 68, monthlyPremium: 100
+  });
+  assert.ok(r.found);
+  assert.strictEqual(r.kind, undefined, 'non-MAPD results keep their original shape');
+  close(r.rate, 0.25, 'rate');
+  close(r.upfrontCommission, 300, 'upfront');
+  assert.strictEqual(r.advanceMonths, 12);
 });
 
 console.log('\nDropdown dependency');

@@ -1431,8 +1431,63 @@
   // ---------------------------------------------------------------------------
   var CARRIERS_WITHOUT_DATA = [];
 
+  // ---------------------------------------------------------------------------
+  // MAPD (Medicare Advantage Prescription Drug)
+  //
+  // MAPD pays a flat CMS-capped dollar amount per enrollment rather than a
+  // percentage of premium, and the amount is the same whichever carrier the plan
+  // is written through - it varies only by state group and effective year. It is
+  // therefore held separately from the percentage-of-premium rules above and is
+  // offered under its own entry in the carrier list.
+  // ---------------------------------------------------------------------------
+  var MAPD_CARRIER = 'MAPD (Medicare Advantage)';
+  var MAPD_PRODUCT = 'MAPD';
+
+  var MAPD = {
+    carrier: MAPD_CARRIER,
+    product: MAPD_PRODUCT,
+
+    // State groups. Only our licensed states appear, so National here means
+    // "the licensed states that are not CA, NJ or PA".
+    stateGroups: [
+      { name: 'CA/NJ', states: ['CA', 'NJ'] },
+      { name: 'PA', states: ['PA'] },
+      { name: 'National', states: ['AZ', 'NV', 'LA', 'TX', 'NC', 'ID', 'OH', 'IL', 'VA', 'FL'] }
+    ],
+
+    // Annual rates by effective year and state group.
+    rates: {
+      2026: {
+        'CA/NJ': { initial: 864, renewal: 432 },
+        'PA': { initial: 781, renewal: 391 },
+        'National': { initial: 694, renewal: 347 }
+      },
+      2027: {
+        'CA/NJ': { initial: 902, renewal: 451 },
+        'PA': { initial: 816, renewal: 408 },
+        'National': { initial: 725, renewal: 363 }
+      }
+    },
+
+    // Kept for tracking only - enrollment period does not decide the rate.
+    enrollmentTypes: ['IEP', 'AEP', 'SEP'],
+
+    // The member's current coverage is what decides Initial/FYC vs Renewal.
+    currentCoverage: [
+      { value: 'New to Medicare', commissionType: 'initial' },
+      { value: 'Original Medicare', commissionType: 'initial' },
+      { value: 'PDP', commissionType: 'initial' },
+      { value: 'Employer Group Plan', commissionType: 'initial' },
+      { value: 'MA', commissionType: 'renewal' },
+      { value: 'MAPD', commissionType: 'renewal' }
+    ],
+
+    note: 'MAPD commission is a flat CMS-capped amount per enrollment, so it does not depend on the carrier or on the premium. Enrollment type is recorded for tracking; the member\u2019s current coverage is what decides Initial/FYC versus Renewal.'
+  };
+
   var DATA = {
     appointedStates: APPOINTED_STATES,
+    mapd: MAPD,
     advances: ADVANCES,
     rules: RULES,
     carriersWithoutData: CARRIERS_WITHOUT_DATA
