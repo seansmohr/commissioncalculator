@@ -15,7 +15,7 @@ published rates are used anywhere.
 | Manhattan Life | `manhattan life commission schedule` (JU Level 5, 2-2026) — **all 4 pages, scanned; read visually** | MGA |
 | Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (TERBRKXX01_08, eff. 05/01/2026) — **all 4 pages** | GA 8 |
 | American Benefit Life | `American Benefit Life Commission Schedule.pdf` (ABLBRKMS1_10, eff. 11/01/2025) — **all 3 pages** | GA 10 |
-| Liberty Bankers | `Liberty Bankers Commission Schedules` (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
+| Liberty Bankers | `Liberty Bankers Commission Schedules` — **all 5 pages** (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) | MGA Level 4 |
 | Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) | General Agent |
 | GTL | "GTL Commission Rates" panel from the carrier portal (screenshot) | not stated on the panel |
@@ -117,6 +117,20 @@ All rates confirmed against the Level 5 / General Agent (topline street) column.
 Nothing was wrong. Two products were added: **Medigap Internal Replacement**
 (12.5%) and **Dental Internal Replacement** (5%), both of which pay materially
 less than new business.
+
+### Liberty Bankers — verified, nothing wrong
+
+Confirmed against all 5 pages. Both previously-flagged readings turned out to be
+correct and their caution flags are removed:
+
+- **Supplemental Health state groups.** The left-hand table is the 50%/60% group
+  and the right-hand table the 55%/65% group, exactly as transcribed. So Hospital
+  Indemnity pays 72.50%/57.50% in the 50% states (FL, ID, IL, LA, NC, NV, PA,
+  TX), 62.50%/47.50% in the 55% states (AZ, OH, VA) and 47.50%/32.50% in New
+  Jersey.
+- **Medicare Supplement**, every appointed state, matched the source exactly —
+  including Ohio and New Jersey having no under-65 rate on Plans F & G or Plan N,
+  and the AZ / FL / LA / NV group paying a genuine 0%.
 
 ### Heartland — complete, and both open questions closed
 
@@ -231,26 +245,20 @@ appointed in the only states they cover: Cancer and Heart Attack or Stroke
 
 ## Flagged for spot-check
 
-Liberty Bankers **Supplemental Health** rules carry a `verify: true` flag and
-show a caution note on the results card. Those rates come from a two-column PDF
-layout where the left column is the 50%/60% state group and the right column is
-the 55%/65% group. The column pairing is structurally clear but worth confirming
-against the schedule before quoting a large case.
-
-**Heartland North Carolina, under age 65.** The NC block has three plan tables
-but only one "Age 0-64" table (0.90%), so that rate is applied to all three NC
-plans. Every other state on this schedule uses a single under-65 rate across all
-plans, so this is consistent with the document's own structure — but it is the
-one place the reading is inferred from layout rather than read off directly.
+The only rules still carrying a `verify` flag — and a caution note on the
+results card — are **GTL's**, because that carrier's source is a portal rates
+panel rather than a commission schedule. See gap 1 above.
 
 ## Discrepancy worth knowing about
 
 For **Liberty Bankers**, the spreadsheet says *"9 month advance for ancillary;
-No advance for Medicare supplement."* The PDF itself shows the Supplemental
-Health schedule with **"☒ No Advance"** checked, and leaves all three advance
-boxes unchecked on the Medicare Supplement schedule. The calculator follows the
-spreadsheet, per the requirement that the spreadsheet is the source of truth for
-advances — but it is worth confirming with Liberty Bankers which is current.
+No advance for Medicare supplement,"* and the agency has since confirmed that
+again. The PDF's Supplemental Health schedule, however, shows **"☒ No Advance"**
+checked. The calculator follows the agency's instruction and advances ancillary
+9 months. The Medicare Supplement side agrees in both sources: no advance.
+
+This is the one place where a loaded advance term contradicts the carrier
+document, so it is worth a call to Liberty Bankers to settle which is current.
 
 ## Updating the data
 

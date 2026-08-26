@@ -1088,6 +1088,69 @@ test('GTL is no longer listed as a carrier without data', function () {
   assert.ok(engine.getCarriers().indexOf('GTL') !== -1, 'GTL should appear in the carrier dropdown');
 });
 
+console.log('\nLiberty Bankers (verified against the source PDF)');
+
+test('Supplemental Health state groups are confirmed, not flagged', function () {
+  var hi = 'Hospital Indemnity Policy';
+  // 50% states: left-hand table.
+  ['FL', 'ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX'].forEach(function (st) {
+    close(engine.findRule('Liberty Bankers', st, hi, 60).rate, 0.725, st + ' ages 18-75');
+    close(engine.findRule('Liberty Bankers', st, hi, 80).rate, 0.575, st + ' ages 76-85');
+  });
+  // 55% states: right-hand table.
+  ['AZ', 'OH', 'VA'].forEach(function (st) {
+    close(engine.findRule('Liberty Bankers', st, hi, 60).rate, 0.625, st + ' ages 18-75');
+    close(engine.findRule('Liberty Bankers', st, hi, 80).rate, 0.475, st + ' ages 76-85');
+  });
+  // 65% state: New Jersey.
+  close(engine.findRule('Liberty Bankers', 'NJ', hi, 60).rate, 0.475, 'NJ ages 18-75');
+  close(engine.findRule('Liberty Bankers', 'NJ', hi, 80).rate, 0.325, 'NJ ages 76-85');
+});
+
+test('no Liberty Bankers rule is flagged for verification any more', function () {
+  DATA.rules.filter(function (r) { return r.carrier === 'Liberty Bankers'; })
+    .forEach(function (r) {
+      assert.ok(!r.verify, r.product + ' should no longer be flagged');
+    });
+});
+
+test('Accident Policy has no 76-85 band, matching the schedule N/A', function () {
+  var acc = 'Accident Policy / ACC Rider';
+  close(engine.findRule('Liberty Bankers', 'TX', acc, 60).rate, 0.725, 'TX 18-75');
+  assert.strictEqual(engine.findRule('Liberty Bankers', 'TX', acc, 80), null, 'no rate at 76-85');
+});
+
+test('Medicare Supplement rates match the source in every appointed state', function () {
+  var a = 'Medicare Supplement - Plan A';
+  var fg = 'Medicare Supplement - Plans F & G';
+  var n = 'Medicare Supplement - Plan N';
+  // Ohio and New Jersey have no under-65 rates on F&G or N.
+  ['OH', 'NJ'].forEach(function (st) {
+    close(engine.findRule('Liberty Bankers', st, fg, 70).rate, 0.228, st + ' F&G 65-79');
+    close(engine.findRule('Liberty Bankers', st, fg, 82).rate, 0.114, st + ' F&G 80+');
+    close(engine.findRule('Liberty Bankers', st, n, 70).rate, 0.278, st + ' Plan N 65-79');
+    assert.strictEqual(engine.findRule('Liberty Bankers', st, fg, 60), null, st + ' F&G under 65');
+  });
+  close(engine.findRule('Liberty Bankers', 'IL', fg, 60).rate, 0.0613, 'IL F&G under 65');
+  close(engine.findRule('Liberty Bankers', 'IL', n, 60).rate, 0.074, 'IL Plan N under 65');
+  close(engine.findRule('Liberty Bankers', 'PA', a, 70).rate, 0.0445, 'PA Plan A 65-79');
+  close(engine.findRule('Liberty Bankers', 'PA', fg, 60).rate, 0.029, 'PA F&G under 65');
+  close(engine.findRule('Liberty Bankers', 'NC', fg, 60).rate, 0.008, 'NC F&G under 65');
+  close(engine.findRule('Liberty Bankers', 'VA', n, 60).rate, 0.008, 'VA Plan N under 65');
+  close(engine.findRule('Liberty Bankers', 'TX', a, 60).rate, 0.0, 'TX Plan A under 65 is a real 0%');
+});
+
+test('Arizona, Florida, Louisiana and Nevada pay 0% on Medicare Supplement', function () {
+  ['AZ', 'FL', 'LA', 'NV'].forEach(function (st) {
+    var r = engine.calculate({
+      carrier: 'Liberty Bankers', state: st,
+      product: 'Medicare Supplement - Plans F & G', age: 70, monthlyPremium: 100
+    });
+    assert.strictEqual(r.found, true, st + ' should resolve');
+    assert.strictEqual(r.rate, 0, st + ' pays 0%');
+  });
+});
+
 console.log('\nDropdown dependency');
 
 test('states are limited to states the carrier has rules for', function () {

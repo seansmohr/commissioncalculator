@@ -1049,7 +1049,9 @@
     });
 
     // --- Supplemental Health (ancillary), Heaped Version, Level 10 -----------
-    var shNote = 'Transcribed from a two-column PDF layout - worth spot-checking against the schedule before quoting a large case.';
+    // Verified against the source PDF by column position: the left-hand table
+    // is the 50%/60% state group and the right-hand table the 55%/65% group.
+    var shNote = null;
     var group50 = ['FL', 'ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX'];
     var group55 = ['AZ', 'OH', 'VA'];
     var group65 = ['NJ'];
@@ -1065,19 +1067,19 @@
     ];
     shRates.forEach(function (r) {
       add([
-        { carrier: 'Liberty Bankers', states: group50, category: 'ancillary', product: r[0], minAge: 18, maxAge: 75, rate: r[1], note: shNote, verify: true },
-        { carrier: 'Liberty Bankers', states: group50, category: 'ancillary', product: r[0], minAge: 76, maxAge: 85, rate: r[2], note: shNote, verify: true },
-        { carrier: 'Liberty Bankers', states: group55, category: 'ancillary', product: r[0], minAge: 18, maxAge: 75, rate: r[3], note: shNote, verify: true },
-        { carrier: 'Liberty Bankers', states: group55, category: 'ancillary', product: r[0], minAge: 76, maxAge: 85, rate: r[4], note: shNote, verify: true },
-        { carrier: 'Liberty Bankers', states: group65, category: 'ancillary', product: r[0], minAge: 18, maxAge: 75, rate: r[5], note: shNote, verify: true },
-        { carrier: 'Liberty Bankers', states: group65, category: 'ancillary', product: r[0], minAge: 76, maxAge: 85, rate: r[6], note: shNote, verify: true }
+        { carrier: 'Liberty Bankers', states: group50, category: 'ancillary', product: r[0], minAge: 18, maxAge: 75, rate: r[1] },
+        { carrier: 'Liberty Bankers', states: group50, category: 'ancillary', product: r[0], minAge: 76, maxAge: 85, rate: r[2] },
+        { carrier: 'Liberty Bankers', states: group55, category: 'ancillary', product: r[0], minAge: 18, maxAge: 75, rate: r[3] },
+        { carrier: 'Liberty Bankers', states: group55, category: 'ancillary', product: r[0], minAge: 76, maxAge: 85, rate: r[4] },
+        { carrier: 'Liberty Bankers', states: group65, category: 'ancillary', product: r[0], minAge: 18, maxAge: 75, rate: r[5] },
+        { carrier: 'Liberty Bankers', states: group65, category: 'ancillary', product: r[0], minAge: 76, maxAge: 85, rate: r[6] }
       ]);
     });
     // Accident has no 76-85 band (N/A on the schedule)
     add([
-      { carrier: 'Liberty Bankers', states: group50, category: 'ancillary', product: 'Accident Policy / ACC Rider', minAge: 18, maxAge: 75, rate: 0.725, note: shNote, verify: true },
-      { carrier: 'Liberty Bankers', states: group55, category: 'ancillary', product: 'Accident Policy / ACC Rider', minAge: 18, maxAge: 75, rate: 0.625, note: shNote, verify: true },
-      { carrier: 'Liberty Bankers', states: group65, category: 'ancillary', product: 'Accident Policy / ACC Rider', minAge: 18, maxAge: 75, rate: 0.475, note: shNote, verify: true }
+      { carrier: 'Liberty Bankers', states: group50, category: 'ancillary', product: 'Accident Policy / ACC Rider', minAge: 18, maxAge: 75, rate: 0.725 },
+      { carrier: 'Liberty Bankers', states: group55, category: 'ancillary', product: 'Accident Policy / ACC Rider', minAge: 18, maxAge: 75, rate: 0.625 },
+      { carrier: 'Liberty Bankers', states: group65, category: 'ancillary', product: 'Accident Policy / ACC Rider', minAge: 18, maxAge: 75, rate: 0.475 }
     ]);
   }());
 
