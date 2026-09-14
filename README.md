@@ -144,20 +144,24 @@ the asset allowlist and path-traversal handling.
 ## Data coverage
 
 Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life, Bankers
-Fidelity, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
-Mutual of Omaha (Long Term Care only), Physicians Mutual.
+Fidelity, GTL, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
+Mutual of Omaha (Long Term Care only), Physicians Mutual, United American.
 
 Read from the full source and complete: **Aetna Senior Supplemental**,
 **Aflac**, **American Benefit Life**, **Bankers Fidelity**, **Healthspring**,
 **Heartland**, **Liberty Bankers**, **Manhattan Life**, **Medico**, **Physicians
-Mutual**, and **Mutual of Omaha** (for the Long Term Care schedule, which is all
-that schedule contains). Only **GTL** rests on a weaker source — a carrier
-portal rates panel — and its rules are flagged accordingly.
+Mutual**, **United American**, and **Mutual of Omaha** (for the Long Term Care
+schedule, which is all that schedule contains). Only **GTL** rests on a weaker
+source — a carrier portal rates panel — and its rules are flagged accordingly.
 
 **GTL** is loaded from a carrier-portal rates panel rather than a commission
 schedule. It has no state or age breakdown, so every GTL rule is flagged for
 verification and shows a caution note on the results card. See
 [`data/SOURCES.md`](data/SOURCES.md) before relying on it.
+
+**UnitedHealthcare** is not loaded. The file supplied for it is a DocuSign
+completion certificate, not the signed schedule it certifies — see
+[`data/SOURCES.md`](data/SOURCES.md).
 
 Remaining gaps are listed in [`data/SOURCES.md`](data/SOURCES.md).
 

@@ -20,6 +20,7 @@ published rates are used anywhere.
 | Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) — **all 5 pages** | General Agent |
 | GTL | "GTL Commission Rates" panel from the carrier portal (screenshot) | not stated on the panel |
 | Heartland | `heartland commission schedules` — **all 10 pages** (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Secure Advantage Flex form 93017; Short-Term Home Health Care rev. 10/23) | GA1 |
+| United American | `United American Commission Schedules.pdf` — **all 7 pages** (Med Supp 1H96 rev. 03-01-22; Other Health 1H97 eff. 01-01-2018; Life & Annuity 1L98 eff. 01-01-2018) | Level 01, Non-Lead Contract |
 
 Advance arrangements come from column B of
 `Carrier Advances_Commission schedules.xlsx` and nowhere else — the spreadsheet
@@ -70,7 +71,19 @@ These are omissions, not guesses. The calculator returns
 "Commission information not found for this selection." for anything below rather
 than estimating.
 
-1. **GTL — a rates panel is all the carrier provides.** The source is the
+1. **UnitedHealthcare — no schedule has been supplied yet.** The file provided
+   as `uhc commission schedule.pdf` is a five-page DocuSign *Certificate Of
+   Completion* for envelope `8950C128-7B23-82CC-828A-A041A5A77351`, subject
+   "Complete with Docusign: SNMA_RHA_DIST.pdf". It is the audit trail, not the
+   signed document: pages 1–2 are signer events and envelope timestamps, pages
+   3–5 the electronic-record disclosure. The certificate itself records
+   "Document Pages: 21" — those 21 pages are the schedule and are not in the
+   file. There is no percent sign anywhere in it, no dollar figure except a
+   `$0.00` per-page copying fee, and its only three images are a logo and two
+   signature bitmaps. UHC is therefore not loaded. It needs the signed
+   `SNMA_RHA_DIST.pdf`.
+
+2. **GTL — a rates panel is all the carrier provides.** The source is the
    carrier portal's "GTL Commission Rates" list, which gives a first-year/renewal
    pair per product code and nothing else. The agency has confirmed this is what
    GTL supplies, so the rules are **not** flagged for verification — there is no
@@ -96,7 +109,7 @@ than estimating.
    The `ADV+` entry reads "50/3 N25" on the panel. It is loaded at 50%; the
    meaning of "N25" is not established and is recorded in the rule's note.
 
-2. **Mutual of Omaha — everything except Long Term Care.** The schedule PDF was
+3. **Mutual of Omaha — everything except Long Term Care.** The schedule PDF was
    re-supplied in full (16 pages) and confirmed: it contains the cover letter,
    the producer FAQ, the Contract Summary and then the Long Term Care schedule
    (MT0044_0526, "Page 1 of 8" through "Page 8 of 8"). No page is a scan hiding
@@ -126,6 +139,80 @@ column structure that flat text extraction destroys. Scanned pages with no text
 layer are read visually from page renders. This is how the Aetna, Mutual of
 Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
 right way to add the remaining carriers.
+
+### United American — loaded from all three schedules
+
+Read from all 7 pages with coordinate extraction. The file holds **three
+schedules, one per product family**, each labelled `LEVEL 01` and
+`Non-Lead Contract`:
+
+| Contract | Family | Effective |
+|---|---|---|
+| 1H96 | Medicare Supplement | rev. 03-01-22 |
+| 1H97 | Other Health Products | 01-01-2018 |
+| 1L98 | Life & Annuity Products | 01-01-2018 |
+
+They are not three alternative contract levels to choose between — all three are
+ours, one per family. Pages 5–7 are Globe Life's social media and trademark
+policy and carry no rate content.
+
+**Reading the schedule.** Each row is *policy type → plans → ages → states →
+rates by policy year*. Only the **1st Year** column is loaded. The footer sets
+the fallback rule: "Standard Rates shall apply unless state specific rates are
+provided herein", so an appointed state absent from every override takes the
+Standard row. Overrides naming IN, WA, WV, KS, MT, MO, ME, CO, MD, SD or NH are
+outside our licensing and are not transcribed.
+
+**The state overrides that do reach us:**
+
+| Product | Standard | Our exceptions |
+|---|---|---|
+| Med Supp A, B, C, D, F, G, MC48 (65+) | 13% | ID also 13% — no difference |
+| Med Supp HDF & HDG (65+) | 10% | **ID 13%** |
+| Med Supp K, L, N attained age (65+) | 18 / 13 / 8% by band | none |
+| Med Supp K, L, N issue age (65+) | 15 / 13 / 11% by band | **ID flat 13% at all ages 65+** |
+| Under-65 disability, underwritten | 13% / 10% / 10% | none |
+| Under-65 disability, OE/GI/ESRD | **0%** | FL 3.20 / 2.50 / 2.70%; ID 13%; CA & IL 13 / 10 / 8% |
+| MMGAP | 15% | **CA 3%** |
+
+**Under-65 disability needed a product split.** The schedule prices under-65
+disability business two ways at very different rates — medically underwritten
+versus open enrollment / guaranteed issue / ESRD — and age alone cannot tell
+them apart. Taking Plans A–G in Florida: 13% underwritten against 3.20% on a
+GI basis, a 4× difference. Since the calculator's inputs are carrier, state,
+product, age and premium, the underwriting basis is carried in the **product
+name** and the agent picks it. Guessing either way would have been wrong most of
+the time.
+
+The OE/GI/ESRD standard rate is a real, documented **0%** in AZ, LA, NC, NJ, NV,
+OH, PA, TX and VA. The calculator reports $0 there rather than "not found" — the
+rate exists and it is zero. Same for the Accidental Death Policy (ADP), which
+the Life schedule shows at 0.00% in every policy year.
+
+**Products listed for one state only.** CANLS appears for Florida alone and
+INDEM1 for California alone, neither with a Standard row, so each is written to
+that state only. **CANB is not loaded at all** — it is listed for MT and NH,
+which we are not appointed in, and has no Standard rate.
+
+**Product codes.** The Other Health schedule names its products only by code
+(MMGAP, CILS, CANLS, CANLS-2, UA250, INDEM1), so that is what the Product
+dropdown shows, with a note saying so. Plain-English names to be supplied.
+
+**Advance:** none — confirmed with the agency; commission is paid as earned. The
+schedules themselves state no advance terms.
+
+**Carried as notes, not as math:** commission is 3% less when the initial
+premium is paid by credit or debit card (this note is on every United American
+rule); no commission is paid on the portion of Medicare Supplement premium
+attributable to the Part B deductible; plans C, F and HDF are closed to newly
+eligible beneficiaries on or after 1/1/2020; and renewal commission is 0% in
+policy years 7+ on Medicare Supplement issued guaranteed-issue to replace a
+Medicare Advantage policy — renewal years are not modeled in Version 1 either
+way.
+
+**Not to be confused with** Mutual of Omaha's "United Health" (AM2.001) and
+"United World" (R62.005) Medicare Supplement schedules listed in its Contract
+Summary, or with UnitedHealthcare. Three different companies.
 
 ### Healthspring — now complete
 

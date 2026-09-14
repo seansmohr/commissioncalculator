@@ -10,7 +10,7 @@
  * contract level (Aetna GA level 12, Healthspring/Loyal GA-60, Physicians Mutual
  * General Agent street, ManhattanLife MGA Level 5, Aflac/Tier One GA 8, American
  * Benefit Life GA 10, Liberty Bankers GA10 / Level 10, Medico MGA Level 4,
- * Bankers Fidelity General Agent). No street-level or publicly published rates
+ * Bankers Fidelity General Agent, United American Level 01). No street-level or publicly published rates
  * are used anywhere in this file.
  *
  * Rates are FIRST-YEAR (policy year 1) rates, which is what the calculator needs.
@@ -94,6 +94,10 @@
       default: 6,
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary"'
+    },
+    'United American': {
+      default: 0,
+      source: 'Confirmed with the agency: no advance, commission is paid as earned. The schedule itself states no advance terms.'
     },
     'Heartland': {
       default: 9,
@@ -1423,6 +1427,255 @@
           : src
       }]);
     });
+  }());
+
+
+  // ===========================================================================
+  // UNITED AMERICAN INSURANCE COMPANY  (Level 01, Non-Lead Contract) - no advance
+  //
+  // Three schedules, one per product family, all written at LEVEL 01:
+  //   1H96  Medicare Supplement       (rev. 03-01-22)
+  //   1H97  Other Health Products     (effective 01-01-2018)
+  //   1L98  Life & Annuity Products   (effective 01-01-2018)
+  //
+  // Each schedule gives a STANDARD rate plus state-specific overrides. Per the
+  // schedule footer, "Standard Rates shall apply unless state specific rates are
+  // provided herein", so a state we are appointed in that is not named in an
+  // override takes the standard rate. Only overrides naming one of our states
+  // are reproduced below; the rest (IN, WA, WV, KS, MT, MO, ME, CO, MD, SD, NH)
+  // are outside our licensing.
+  //
+  // The Medicare Supplement schedule splits under-65 disability business two
+  // ways - medically underwritten versus open enrollment / guaranteed issue /
+  // ESRD - at very different rates. Age alone cannot tell those apart, so the
+  // basis is carried in the product name and the agent chooses it.
+  // ===========================================================================
+  (function unitedAmerican() {
+    var UA = 'United American';
+
+    // Applies to every United American product.
+    var CARD = 'Commission is 3% less when the initial premium payment is made by credit or debit card.';
+    var PARTB = 'No commission is paid on the portion of premium attributable to the Medicare Part B deductible. Plans C, F and HDF are closed to newly eligible beneficiaries on or after 1/1/2020. ' + CARD;
+    var UW = 'Under age 65 disability business, medically underwritten. ' + CARD;
+    var OE = 'Under age 65 disability business taken on an open enrollment, guaranteed issue or ESRD basis. ' + CARD;
+    var CODE = 'United American identifies this product by its schedule code only. ' + CARD;
+
+    // --- 1H96  Medicare Supplement, age 65 and over --------------------------
+    add([
+      {
+        carrier: UA, states: ALL, category: 'medicare_supplement',
+        product: 'Medicare Supplement A, B, C, D, F, G, MC48 - Age 65+',
+        minAge: 65, rate: 0.13, note: PARTB
+      },
+      {
+        carrier: UA, states: ['AZ', 'CA', 'FL', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement HDF & HDG - Age 65+',
+        minAge: 65, rate: 0.10, note: PARTB
+      },
+      {
+        carrier: UA, states: ['ID'], category: 'medicare_supplement',
+        product: 'Medicare Supplement HDF & HDG - Age 65+',
+        minAge: 65, rate: 0.13, note: PARTB
+      },
+      {
+        carrier: UA, states: ALL, category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Age 65+ (Attained Age)',
+        minAge: 65, maxAge: 69, rate: 0.18, note: PARTB
+      },
+      {
+        carrier: UA, states: ALL, category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Age 65+ (Attained Age)',
+        minAge: 70, maxAge: 74, rate: 0.13, note: PARTB
+      },
+      {
+        carrier: UA, states: ALL, category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Age 65+ (Attained Age)',
+        minAge: 75, rate: 0.08, note: PARTB
+      },
+      {
+        carrier: UA, states: ['AZ', 'CA', 'FL', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Age 65+ (Issue Age)',
+        minAge: 65, maxAge: 69, rate: 0.15, note: PARTB
+      },
+      {
+        carrier: UA, states: ['AZ', 'CA', 'FL', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Age 65+ (Issue Age)',
+        minAge: 70, maxAge: 74, rate: 0.13, note: PARTB
+      },
+      {
+        carrier: UA, states: ['AZ', 'CA', 'FL', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Age 65+ (Issue Age)',
+        minAge: 75, rate: 0.11, note: PARTB
+      },
+      {
+        carrier: UA, states: ['ID'], category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Age 65+ (Issue Age)',
+        minAge: 65, rate: 0.13, note: PARTB
+      },
+    ]);
+
+    // --- 1H96  Under 65 disability, medically underwritten -------------------
+    add([
+      {
+        carrier: UA, states: ALL, category: 'medicare_supplement',
+        product: 'Medicare Supplement A, B, C, D, F, G, MC48 - Under 65 Disability (Underwritten)',
+        maxAge: 64, rate: 0.13, note: UW
+      },
+      {
+        carrier: UA, states: ALL, category: 'medicare_supplement',
+        product: 'Medicare Supplement HDF & HDG - Under 65 Disability (Underwritten)',
+        maxAge: 64, rate: 0.10, note: UW
+      },
+      {
+        carrier: UA, states: ALL, category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Under 65 Disability (Underwritten)',
+        maxAge: 64, rate: 0.10, note: UW
+      },
+    ]);
+
+    // --- 1H96  Under 65 disability, open enrollment / GI / ESRD --------------
+    // The standard rate here is 0%; only FL, ID, CA and IL pay anything.
+    add([
+      {
+        carrier: UA, states: ['AZ', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement A, B, C, D, F, G, MC48 - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0, note: OE
+      },
+      {
+        carrier: UA, states: ['FL'], category: 'medicare_supplement',
+        product: 'Medicare Supplement A, B, C, D, F, G, MC48 - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.032, note: OE
+      },
+      {
+        carrier: UA, states: ['ID'], category: 'medicare_supplement',
+        product: 'Medicare Supplement A, B, C, D, F, G, MC48 - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.13, note: OE
+      },
+      {
+        carrier: UA, states: ['CA', 'IL'], category: 'medicare_supplement',
+        product: 'Medicare Supplement A, B, C, D, F, G, MC48 - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.13, note: OE
+      },
+      {
+        carrier: UA, states: ['AZ', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement HDF & HDG - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0, note: OE
+      },
+      {
+        carrier: UA, states: ['FL'], category: 'medicare_supplement',
+        product: 'Medicare Supplement HDF & HDG - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.025, note: OE
+      },
+      {
+        carrier: UA, states: ['ID'], category: 'medicare_supplement',
+        product: 'Medicare Supplement HDF & HDG - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.13, note: OE
+      },
+      {
+        carrier: UA, states: ['CA', 'IL'], category: 'medicare_supplement',
+        product: 'Medicare Supplement HDF & HDG - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.10, note: OE
+      },
+      {
+        carrier: UA, states: ['AZ', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0, note: OE
+      },
+      {
+        carrier: UA, states: ['FL'], category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.027, note: OE
+      },
+      {
+        carrier: UA, states: ['ID'], category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.13, note: OE
+      },
+      {
+        carrier: UA, states: ['CA', 'IL'], category: 'medicare_supplement',
+        product: 'Medicare Supplement K, L, N - Under 65 Disability (OE/GI/ESRD)',
+        maxAge: 64, rate: 0.08, note: OE
+      },
+    ]);
+
+    // --- 1H97  Other Health Products -----------------------------------------
+    // The schedule names these products by their carrier code only, so that is
+    // what the dropdown shows. CANB is listed for MT and NH alone and carries no
+    // standard rate, so it is not loaded.
+    add([
+      {
+        carrier: UA, states: ['AZ', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'],
+        category: 'ancillary', product: 'MMGAP', rate: 0.15, note: CODE
+      },
+      {
+        carrier: UA, states: ['CA'], category: 'ancillary',
+        product: 'MMGAP', rate: 0.03, note: CODE
+      },
+      {
+        carrier: UA, states: ALL, category: 'ancillary',
+        product: 'CILS', rate: 0.30, note: CODE
+      },
+      {
+        carrier: UA, states: ['FL'], category: 'ancillary',
+        product: 'CANLS', rate: 0.30,
+        note: 'The schedule lists CANLS for Florida only and gives it no standard rate. ' + CODE
+      },
+      {
+        carrier: UA, states: ALL, category: 'ancillary',
+        product: 'CANLS-2', rate: 0.40, note: CODE
+      },
+      {
+        carrier: UA, states: ALL, category: 'ancillary',
+        product: 'UA250', rate: 0.30, note: CODE
+      },
+      {
+        carrier: UA, states: ['CA'], category: 'ancillary',
+        product: 'INDEM1', rate: 0.10,
+        note: 'The schedule lists INDEM1 for California only and gives it no standard rate. ' + CODE
+      }
+    ]);
+
+    // --- 1L98  Life & Annuity Products ---------------------------------------
+    // Standard rates only - the schedule's single state override (MD) is outside
+    // our licensing.
+    add([
+      {
+        carrier: UA, states: ALL, category: 'life',
+        product: 'Fundamental Life - 10 Year Renewable Term',
+        minAge: 0, maxAge: 60, rate: 0.65, note: CARD
+      },
+      {
+        carrier: UA, states: ALL, category: 'life',
+        product: 'Fundamental Life - 10 Year & 20 Year Term',
+        minAge: 20, maxAge: 70, rate: 0.20, note: CARD
+      },
+      {
+        carrier: UA, states: ALL, category: 'final_expense',
+        product: 'Final Expense Whole Life',
+        minAge: 50, maxAge: 74, rate: 0.90, note: CARD
+      },
+      {
+        carrier: UA, states: ALL, category: 'final_expense',
+        product: 'Final Expense Whole Life',
+        minAge: 75, maxAge: 80, rate: 0.80, note: CARD
+      },
+      {
+        carrier: UA, states: ALL, category: 'final_expense',
+        product: 'Final Expense Whole Life GET/GEU',
+        minAge: 50, maxAge: 74, rate: 0.80, note: CARD
+      },
+      {
+        carrier: UA, states: ALL, category: 'final_expense',
+        product: 'Final Expense Juvenile Whole Life',
+        minAge: 0, maxAge: 18, rate: 0.90, note: CARD
+      },
+      {
+        carrier: UA, states: ALL, category: 'life',
+        product: 'Accidental Death Policy (ADP)',
+        minAge: 18, maxAge: 68, rate: 0,
+        note: 'The schedule shows 0.00% in every policy year for ADP - no commission is paid on this product. ' + CARD
+      }
+    ]);
   }());
 
   // ---------------------------------------------------------------------------

@@ -947,7 +947,7 @@ test('calculate() still delegates to the MAPD path when handed the MAPD carrier'
 test('MAPD is not a carrier and stays out of the carrier list', function () {
   var carriers = engine.getCarriers();
   assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
-  assert.strictEqual(carriers.length, 12, 'the carrier list is the twelve real carriers');
+  assert.strictEqual(carriers.length, 13, 'the carrier list is the thirteen real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
   assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
@@ -1074,6 +1074,161 @@ test('existing percentage-of-premium carriers are untouched by MAPD', function (
   close(r.rate, 0.25, 'rate');
   close(r.upfrontCommission, 300, 'upfront');
   assert.strictEqual(r.advanceMonths, 12);
+});
+
+console.log('\nUnited American');
+
+function ua(state, product, age) {
+  return engine.calculate({
+    carrier: 'United American', state: state, product: product,
+    age: age, monthlyPremium: 100
+  });
+}
+
+test('United American is in the carrier list and pays as earned', function () {
+  assert.ok(engine.getCarriers().indexOf('United American') !== -1);
+  assert.strictEqual(engine.getAdvanceMonths('United American', 'medicare_supplement'), 0);
+  assert.strictEqual(engine.getAdvanceMonths('United American', 'ancillary'), 0);
+  assert.strictEqual(engine.getAdvanceMonths('United American', 'life'), 0);
+});
+
+test('Med Supp A-G/MC48 at 65+ is the standard 13% everywhere we write', function () {
+  ['AZ', 'CA', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'].forEach(function (st) {
+    var r = ua(st, 'Medicare Supplement A, B, C, D, F, G, MC48 - Age 65+', 70);
+    assert.ok(r.found, st + ' should have a rate');
+    close(r.rate, 0.13, st);
+  });
+});
+
+test('Idaho pays 13% on HDF & HDG where the standard rate is 10%', function () {
+  close(ua('ID', 'Medicare Supplement HDF & HDG - Age 65+', 70).rate, 0.13, 'ID');
+  close(ua('PA', 'Medicare Supplement HDF & HDG - Age 65+', 70).rate, 0.10, 'PA');
+});
+
+test('K, L, N attained-age bands step 18 / 13 / 8', function () {
+  var p = 'Medicare Supplement K, L, N - Age 65+ (Attained Age)';
+  close(ua('TX', p, 65).rate, 0.18, '65');
+  close(ua('TX', p, 69).rate, 0.18, '69');
+  close(ua('TX', p, 70).rate, 0.13, '70');
+  close(ua('TX', p, 74).rate, 0.13, '74');
+  close(ua('TX', p, 75).rate, 0.08, '75');
+  close(ua('TX', p, 90).rate, 0.08, '90');
+});
+
+test('K, L, N issue-age bands step 15 / 13 / 11, but Idaho is a flat 13%', function () {
+  var p = 'Medicare Supplement K, L, N - Age 65+ (Issue Age)';
+  close(ua('TX', p, 66).rate, 0.15, 'TX 66');
+  close(ua('TX', p, 72).rate, 0.13, 'TX 72');
+  close(ua('TX', p, 80).rate, 0.11, 'TX 80');
+  close(ua('ID', p, 66).rate, 0.13, 'ID 66');
+  close(ua('ID', p, 80).rate, 0.13, 'ID 80');
+});
+
+test('age-65+ Med Supp products do not answer for an under-65 client', function () {
+  assert.strictEqual(
+    ua('PA', 'Medicare Supplement A, B, C, D, F, G, MC48 - Age 65+', 60).message,
+    engine.NOT_FOUND
+  );
+});
+
+test('under-65 disability splits by underwriting basis, not by age', function () {
+  var plan = 'Medicare Supplement A, B, C, D, F, G, MC48 - Under 65 Disability';
+  close(ua('FL', plan + ' (Underwritten)', 60).rate, 0.13, 'FL underwritten');
+  close(ua('FL', plan + ' (OE/GI/ESRD)', 60).rate, 0.032, 'FL OE/GI/ESRD');
+});
+
+test('OE/GI/ESRD under-65 pays nothing outside FL, ID, CA and IL', function () {
+  var plan = 'Medicare Supplement HDF & HDG - Under 65 Disability (OE/GI/ESRD)';
+  var r = ua('PA', plan, 60);
+  assert.ok(r.found, 'a 0% rate is a known rate, not a missing one');
+  close(r.rate, 0, 'PA');
+  close(r.totalFirstYearCommission, 0, 'PA first-year');
+  close(ua('FL', plan, 60).rate, 0.025, 'FL');
+  close(ua('ID', plan, 60).rate, 0.13, 'ID');
+  close(ua('CA', plan, 60).rate, 0.10, 'CA');
+  close(ua('IL', plan, 60).rate, 0.10, 'IL');
+});
+
+test('OE/GI/ESRD K, L, N uses its own Florida and CA/IL rates', function () {
+  var plan = 'Medicare Supplement K, L, N - Under 65 Disability (OE/GI/ESRD)';
+  close(ua('FL', plan, 60).rate, 0.027, 'FL');
+  close(ua('CA', plan, 60).rate, 0.08, 'CA');
+  close(ua('IL', plan, 60).rate, 0.08, 'IL');
+});
+
+test('California MMGAP is 3%, everywhere else 15%', function () {
+  close(ua('CA', 'MMGAP', 70).rate, 0.03, 'CA');
+  close(ua('FL', 'MMGAP', 70).rate, 0.15, 'FL');
+  close(ua('PA', 'MMGAP', 70).rate, 0.15, 'PA');
+});
+
+test('products the schedule lists for one state only are offered there only', function () {
+  close(ua('FL', 'CANLS', 70).rate, 0.30, 'FL CANLS');
+  assert.strictEqual(ua('PA', 'CANLS', 70).message, engine.NOT_FOUND);
+  close(ua('CA', 'INDEM1', 70).rate, 0.10, 'CA INDEM1');
+  assert.strictEqual(ua('FL', 'INDEM1', 70).message, engine.NOT_FOUND);
+});
+
+test('CANB is not loaded - it is listed for MT and NH only', function () {
+  assert.strictEqual(
+    DATA.rules.filter(function (r) {
+      return r.carrier === 'United American' && r.product === 'CANB';
+    }).length,
+    0
+  );
+});
+
+test('Other Health standard products are written to all appointed states', function () {
+  ['CILS', 'CANLS-2', 'UA250'].forEach(function (product) {
+    ['AZ', 'CA', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'].forEach(function (st) {
+      assert.ok(ua(st, product, 70).found, product + ' should have a rate in ' + st);
+    });
+  });
+  close(ua('PA', 'CILS', 70).rate, 0.30, 'CILS');
+  close(ua('PA', 'CANLS-2', 70).rate, 0.40, 'CANLS-2');
+  close(ua('PA', 'UA250', 70).rate, 0.30, 'UA250');
+});
+
+test('Final Expense Whole Life steps 90% then 80% and stops at 80', function () {
+  close(ua('PA', 'Final Expense Whole Life', 50).rate, 0.90, '50');
+  close(ua('PA', 'Final Expense Whole Life', 74).rate, 0.90, '74');
+  close(ua('PA', 'Final Expense Whole Life', 75).rate, 0.80, '75');
+  close(ua('PA', 'Final Expense Whole Life', 80).rate, 0.80, '80');
+  assert.strictEqual(ua('PA', 'Final Expense Whole Life', 81).message, engine.NOT_FOUND);
+  assert.strictEqual(ua('PA', 'Final Expense Whole Life', 49).message, engine.NOT_FOUND);
+});
+
+test('life products keep their own age windows', function () {
+  close(ua('PA', 'Fundamental Life - 10 Year Renewable Term', 60).rate, 0.65, 'term 60');
+  assert.strictEqual(ua('PA', 'Fundamental Life - 10 Year Renewable Term', 61).message, engine.NOT_FOUND);
+  close(ua('PA', 'Fundamental Life - 10 Year & 20 Year Term', 70).rate, 0.20, 'term 70');
+  close(ua('PA', 'Final Expense Juvenile Whole Life', 10).rate, 0.90, 'juvenile');
+  close(ua('PA', 'Final Expense Whole Life GET/GEU', 60).rate, 0.80, 'GET/GEU');
+});
+
+test('Accidental Death pays a known 0% rather than reporting no data', function () {
+  var r = ua('PA', 'Accidental Death Policy (ADP)', 40);
+  assert.ok(r.found);
+  close(r.rate, 0, 'ADP');
+  close(r.totalFirstYearCommission, 0, 'ADP first-year');
+});
+
+test('no advance means the whole first year is paid as earned', function () {
+  var r = ua('PA', 'Medicare Supplement A, B, C, D, F, G, MC48 - Age 65+', 70);
+  assert.strictEqual(r.advanceMonths, 0);
+  assert.strictEqual(r.paymentMethod, 'as-earned');
+  assert.strictEqual(r.upfrontCommission, undefined);
+  close(r.monthlyCommission, 13, 'monthly');
+});
+
+test('every United American rule carries the credit-card reduction note', function () {
+  DATA.rules.filter(function (r) { return r.carrier === 'United American'; })
+    .forEach(function (r) {
+      assert.ok(
+        r.note && r.note.indexOf('credit or debit card') !== -1,
+        r.product + ' is missing the credit/debit card note'
+      );
+    });
 });
 
 console.log('\nDropdown dependency');
