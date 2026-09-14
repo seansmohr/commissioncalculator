@@ -22,6 +22,12 @@
 (function (root) {
   'use strict';
 
+  // UnitedHealthcare AARP Medicare Supplement is area-rated by ZIP in four of
+  // our states; the chart lives in its own file because of its size.
+  var ZIP = typeof module !== 'undefined' && module.exports
+    ? require('./uhc-areas.js')
+    : root.UHC_ZIP_AREAS;
+
   // ---------------------------------------------------------------------------
   // Appointed states (spreadsheet, column F)
   // ---------------------------------------------------------------------------
@@ -95,6 +101,10 @@
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary"'
     },
+    'UnitedHealthcare': {
+      default: 9,
+      source: 'AARP Medicare Supplement schedule, condition (c): "A nine-month commission advance is paid on all AARP Med Supp Plan sales once the first month premium has been paid." No advance is paid on internal replacements.'
+    },
     'United American': {
       default: 0,
       source: 'Confirmed with the agency: no advance, commission is paid as earned. The schedule itself states no advance terms.'
@@ -128,6 +138,8 @@
   function add(rules) {
     RULES = RULES.concat(rules);
   }
+
+  function round2(n) { return Math.round(n * 100) / 100; }
 
   // ===========================================================================
   // AETNA SENIOR SUPPLEMENTAL  (GA level 12) - 12 month advance
@@ -1678,6 +1690,167 @@
     ]);
   }());
 
+
+  // ===========================================================================
+  // UNITEDHEALTHCARE  (AARP Medicare Supplement) - 9 month advance
+  //
+  // Source: "2026 AARP Medicare Supplement Insurance Plans / Age 65+ Commission
+  // Schedule", Exhibit 3 of the UnitedHealthcare agent agreement amendment dated
+  // September 9, 2025. For applicant signature dates on or after 10/01/2025 and
+  // policy effective dates on or after 01/01/2026.
+  //
+  // UnitedHealthcare pays a FLAT DOLLAR amount per policy year rather than a
+  // percentage of premium, so these rules carry `flatAmount` (the policy-year-1
+  // amount) instead of `rate`. Premium does not enter the calculation.
+  //
+  // Amounts are Agent-level and "net of compensation payable to all lower sales
+  // levels".
+  //
+  // Four of our states are AREA-RATED by the applicant's residential ZIP code -
+  // Florida (4 areas), Louisiana (2), Nevada (2) and Pennsylvania (3). Those
+  // rules carry an `area` number and are matched against the ZIP chart in
+  // data/uhc-areas.js.
+  //
+  // Only policy year 1 is modeled, as everywhere else in this file. Note that
+  // Ohio and Texas band their renewal years 2-7 and 8-10 rather than 2-6 and
+  // 7-10; that distinction only affects renewal years.
+  //
+  // This is the schedule for AARP plans insured by UnitedHealthcare Insurance
+  // Company. The separate, much lower schedule for plans insured by
+  // UnitedHealthcare Insurance Company OF AMERICA is deliberately not loaded -
+  // it applies only to agents "specifically authorized by way of a separate
+  // notice from the Company", which we have not confirmed. See SOURCES.md.
+  // ===========================================================================
+  (function unitedHealthcare() {
+    var UHC = 'UnitedHealthcare';
+    var PREFIX = 'AARP Medicare Supplement - ';
+
+    // Year-1 Agent-level amounts, age 65+. Each entry is
+    //   [states, area (null when the state is not area-rated), plan label, amount]
+    var SCHEDULE = [
+      [['AZ', 'IL', 'NC'], null, 'Plans B, C, D, F, G, Select G', 315.00],
+      [['AZ', 'IL', 'NC'], null, 'Plans N, Select N', 252.00],
+      [['AZ', 'IL', 'NC'], null, 'Plans A, K, L', 126.00],
+
+      [['ID'], null, 'Plans B, C, F, G', 100.00],
+      [['ID'], null, 'Plan N', 50.00],
+      [['ID'], null, 'Plans A, K, L', 0],
+
+      [['VA'], null, 'Plans B, C, F, G, Select G', 360.00],
+      [['VA'], null, 'Plans N, Select N', 288.00],
+      [['VA'], null, 'Plans A, K, L', 96.00],
+
+      [['OH', 'TX'], null, 'Plans B, C, D, F, G, Select G', 315.00],
+      [['OH', 'TX'], null, 'Plans N, Select N', 252.00],
+      [['OH', 'TX'], null, 'Plans A, K, L', 126.00],
+
+      [['CA'], null, 'Plans B, C, F, G', 360.00],
+      [['CA'], null, 'Plan N', 288.00],
+      [['CA'], null, 'Plans A, K, L', 144.00],
+
+      [['NJ'], null, 'Plans B, C, D, F, G', 510.00],
+      [['NJ'], null, 'Plan N', 408.00],
+      [['NJ'], null, 'Plans A, K, L', 126.00],
+
+      [['FL'], 1, 'Plans B, C, F, G, Select G', 582.00],
+      [['FL'], 1, 'Plans N, Select N', 397.50],
+      [['FL'], 1, 'Plans A, K, L', 198.75],
+      [['FL'], 1, 'High-Deductible G', 141.50],
+      [['FL'], 2, 'Plans B, C, F, G, Select G', 468.25],
+      [['FL'], 2, 'Plans N, Select N', 320.50],
+      [['FL'], 2, 'Plans A, K, L', 160.25],
+      [['FL'], 2, 'High-Deductible G', 114.25],
+      [['FL'], 3, 'Plans B, C, F, G, Select G', 431.00],
+      [['FL'], 3, 'Plans N, Select N', 295.00],
+      [['FL'], 3, 'Plans A, K, L', 147.50],
+      [['FL'], 3, 'High-Deductible G', 105.00],
+      [['FL'], 4, 'Plans B, C, F, G, Select G', 443.25],
+      [['FL'], 4, 'Plans N, Select N', 303.25],
+      [['FL'], 4, 'Plans A, K, L', 151.75],
+      [['FL'], 4, 'High-Deductible G', 108.00],
+
+      [['LA'], 1, 'Plans B, C, F, G, Select G', 315.00],
+      [['LA'], 1, 'Plans N, Select N', 252.00],
+      [['LA'], 1, 'Plans A, K, L', 126.00],
+      [['LA'], 2, 'Plans B, C, F, G, Select G', 255.00],
+      [['LA'], 2, 'Plans N, Select N', 204.00],
+      [['LA'], 2, 'Plans A, K, L', 102.00],
+
+      [['NV'], 1, 'Plans B, C, F, G', 360.00],
+      [['NV'], 1, 'Plan N', 288.00],
+      [['NV'], 1, 'Plans A, K, L', 96.00],
+      [['NV'], 2, 'Plans B, C, F, G', 270.00],
+      [['NV'], 2, 'Plan N', 216.00],
+      [['NV'], 2, 'Plans A, K, L', 78.00],
+
+      [['PA'], 1, 'Plans B, C, F, G', 360.00],
+      [['PA'], 1, 'Plan N', 288.00],
+      [['PA'], 1, 'Plans A, K, L', 144.00],
+      [['PA'], 2, 'Plans B, C, F, G', 315.00],
+      [['PA'], 2, 'Plan N', 252.00],
+      [['PA'], 2, 'Plans A, K, L', 126.00],
+      [['PA'], 3, 'Plans B, C, F, G', 255.00],
+      [['PA'], 3, 'Plan N', 204.00],
+      [['PA'], 3, 'Plans A, K, L', 102.00]
+    ];
+
+    // Under-65 treatment, from the schedule's condition (g): "Commissions are
+    // not payable for any individual/applicant who is under the age of 65 as of
+    // their plan effective date except as noted in the following states where
+    // required". Of our states that exception list names CA, FL, ID, IL and PA.
+    //
+    //   full   - the age 65+ amount applies
+    //   0.05   - PA: "for years 1-6, commissions for all levels will be paid at
+    //            5% of the 65+ rates"
+    //   none   - not payable
+    var UNDER65 = {
+      FL: 1, ID: 1, IL: 1,
+      CA: 1,     // but only during the first six months of Part B enrollment
+      PA: 0.05
+    };
+
+    var UNDER65_NOTE = {
+      CA: 'Payable for an under-65 applicant only during the first six months of Medicare Part B enrollment, at the age 65+ amount. No commission is payable beyond year 6.',
+      PA: 'Under-65 business in Pennsylvania is paid at 5% of the age 65+ amount for years 1-6. No commission is payable beyond year 6.',
+      FL: 'Florida is one of the states where under-65 business is payable, at the age 65+ amount.',
+      ID: 'Idaho is one of the states where under-65 business is payable, at the age 65+ amount.',
+      IL: 'Illinois is one of the states where under-65 business is payable, at the age 65+ amount.'
+    };
+
+    var NOT_PAYABLE = 'The schedule does not pay commission on an applicant under age 65 in this state.';
+
+    var BASE = 'Flat Agent-level amount for policy year 1, not a percentage of premium. Amounts are net of compensation payable to lower sales levels.';
+    var AREA_NOTE = 'The amount depends on the applicant’s permanent residential ZIP code.';
+
+    SCHEDULE.forEach(function (row) {
+      var states = row[0];
+      var area = row[1];
+      var product = PREFIX + row[2];
+      var amount = row[3];
+
+      states.forEach(function (state) {
+        var note = BASE + (area === null ? '' : ' ' + AREA_NOTE);
+
+        var age65 = {
+          carrier: UHC, states: [state], category: 'medicare_supplement',
+          product: product, minAge: 65, flatAmount: amount, note: note
+        };
+        if (area !== null) { age65.area = area; }
+        add([age65]);
+
+        var factor = UNDER65[state];
+        var under = {
+          carrier: UHC, states: [state], category: 'medicare_supplement',
+          product: product, maxAge: 64,
+          flatAmount: factor ? round2(amount * factor) : 0,
+          note: note + ' ' + (factor ? UNDER65_NOTE[state] : NOT_PAYABLE)
+        };
+        if (area !== null) { under.area = area; }
+        add([under]);
+      });
+    });
+  }());
+
   // ---------------------------------------------------------------------------
   // Carriers with no usable rate data yet (kept out of the dropdown, listed in
   // SOURCES.md).
@@ -1740,6 +1913,7 @@
 
   var DATA = {
     appointedStates: APPOINTED_STATES,
+    zipAreas: ZIP,
     mapd: MAPD,
     advances: ADVANCES,
     rules: RULES,

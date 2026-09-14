@@ -62,10 +62,28 @@ which source it came from.
 
 ## The math
 
+Most carriers pay a percentage of premium:
+
 ```
 Annualized Premium          = Monthly Premium × 12
 Total First-Year Commission = Annualized Premium × Commission Rate
 ```
+
+### Flat-amount carriers
+
+UnitedHealthcare pays a set dollar amount per policy year instead, so premium
+does not enter the calculation at all and the premium field disappears when one
+of its products is selected:
+
+```
+Total First-Year Commission = the schedule's year-1 amount
+```
+
+Four states are **area-rated by ZIP** on that schedule — Florida, Louisiana,
+Nevada and Pennsylvania — so the calculator asks for the applicant's ZIP in
+those states and looks up the rating area from the carrier's own area chart.
+Florida Plans B/C/F/G pay $582 in Area 1 and $431 in Area 3, so the ZIP is not a
+detail. A ZIP outside the chart says so rather than reporting no data.
 
 ### MAPD
 
@@ -94,10 +112,11 @@ State groups are **CA/NJ**, **PA**, and **National** (the other ten licensed
 states). Rates are on file for 2026 and 2027; an effective date in any other
 year returns a message naming the year rather than guessing.
 
-With an advance of *N* months:
+With an advance of *N* months, the advance is *N* months' worth of the
+first-year commission, whichever way that commission was calculated:
 
 ```
-Expected Upfront Commission   = Monthly Premium × N × Commission Rate
+Expected Upfront Commission   = Total First-Year Commission ÷ 12 × N
 Remaining As-Earned           = Total First-Year Commission − Upfront
 ```
 
@@ -124,6 +143,7 @@ saying so — that's a real contracted rate, not a missing lookup.
 | `app.js` | Dropdown wiring and the results card |
 | `engine.js` | Lookup and math — no DOM, shared with the tests |
 | `data/commission-data.js` | The normalized commission rule table |
+| `data/uhc-areas.js` | UnitedHealthcare ZIP-to-rating-area charts |
 | `data/SOURCES.md` | Which schedule each rate came from, plus known gaps |
 | `server.js` | Zero-dependency static server for deployment |
 | `test/engine.test.js` | Lookup and calculation tests |
@@ -145,13 +165,14 @@ the asset allowlist and path-traversal handling.
 
 Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life, Bankers
 Fidelity, GTL, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
-Mutual of Omaha (Long Term Care only), Physicians Mutual, United American.
+Mutual of Omaha (Long Term Care only), Physicians Mutual, United American,
+UnitedHealthcare (AARP Medicare Supplement).
 
 Read from the full source and complete: **Aetna Senior Supplemental**,
 **Aflac**, **American Benefit Life**, **Bankers Fidelity**, **Healthspring**,
 **Heartland**, **Liberty Bankers**, **Manhattan Life**, **Medico**, **Physicians
-Mutual**, **United American**, and **Mutual of Omaha** (for the Long Term Care
-schedule, which is all that schedule contains). Only **GTL** rests on a weaker
+Mutual**, **United American**, **UnitedHealthcare**, and **Mutual of Omaha** (for
+the Long Term Care schedule, which is all that schedule contains). Only **GTL** rests on a weaker
 source — a carrier portal rates panel — and its rules are flagged accordingly.
 
 **GTL** is loaded from a carrier-portal rates panel rather than a commission
@@ -159,9 +180,10 @@ schedule. It has no state or age breakdown, so every GTL rule is flagged for
 verification and shows a caution note on the results card. See
 [`data/SOURCES.md`](data/SOURCES.md) before relying on it.
 
-**UnitedHealthcare** is not loaded. The file supplied for it is a DocuSign
-completion certificate, not the signed schedule it certifies — see
-[`data/SOURCES.md`](data/SOURCES.md).
+**Heads-up on the MAPD tab:** it uses the CMS caps, which every carrier is
+capped at but not every carrier pays. UnitedHealthcare's own schedule pays
+$406-$510 initial on a **non-SNP PPO** against the $694-$864 the tab shows — its
+HMO, SNP and renewal amounts do match. See [`data/SOURCES.md`](data/SOURCES.md).
 
 Remaining gaps are listed in [`data/SOURCES.md`](data/SOURCES.md).
 

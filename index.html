@@ -45,6 +45,13 @@
         </select>
       </div>
 
+      <!-- Shown only for carriers whose rates are area-rated by ZIP. -->
+      <div class="field" id="zip-field" hidden>
+        <label for="zip">Applicant ZIP Code</label>
+        <input type="text" id="zip" name="zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="19103" disabled>
+        <p class="field__hint" id="zip-hint">This carrier&rsquo;s commission varies by rating area within this state.</p>
+      </div>
+
       <div class="field-row" id="premium-fields">
         <div class="field">
           <label for="age">Client Age</label>
@@ -96,6 +103,7 @@
     </footer>
   </main>
 
+  <script src="data/uhc-areas.js"></script>
   <script src="data/commission-data.js"></script>
   <script src="engine.js"></script>
   <script src="app.js"></script>

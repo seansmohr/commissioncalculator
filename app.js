@@ -9,6 +9,8 @@
   var productEl = document.getElementById('product');
   var ageEl = document.getElementById('age');
   var premiumEl = document.getElementById('premium');
+  var zipEl = document.getElementById('zip');
+  var zipFieldEl = document.getElementById('zip-field');
   var formEl = document.getElementById('calc-form');
   var resultsEl = document.getElementById('results');
   var coverageNoteEl = document.getElementById('coverage-note');
@@ -85,6 +87,8 @@
 
     premiumFieldsEl.hidden = mapd;
     mapdFieldsEl.hidden = !mapd;
+    zipFieldEl.hidden = true;
+    zipEl.disabled = true;
     ageEl.disabled = mapd;
     premiumEl.disabled = mapd;
     enrollmentEl.disabled = !mapd;
@@ -115,6 +119,7 @@
       stateEl.disabled = false;
       stateEl.value = previous;
       if (stateEl.value) { populateProducts(); } else { resetProduct('Select a state first'); }
+      syncOptionalFields();
     }
   }
 
@@ -124,6 +129,35 @@
     });
     setOptions(productEl, products, 'Select a product');
     productEl.disabled = false;
+    syncOptionalFields();
+  }
+
+  /**
+   * Show only the inputs the selected carrier actually needs.
+   *
+   * ZIP appears for carriers whose schedule is area-rated within a state;
+   * premium disappears for carriers that pay a flat dollar amount, where asking
+   * for it would imply it changes the answer.
+   */
+  function syncOptionalFields() {
+    if (isMapdSelected()) {
+      zipFieldEl.hidden = true;
+      zipEl.disabled = true;
+      return;
+    }
+
+    var wantsZip = engine.needsZip(carrierEl.value, stateEl.value);
+    zipFieldEl.hidden = !wantsZip;
+    zipEl.disabled = !wantsZip;
+    zipEl.required = wantsZip;
+    if (!wantsZip) { zipEl.value = ''; }
+
+    var flat = productEl.value &&
+      engine.isFlatAmountProduct(carrierEl.value, stateEl.value, productEl.value);
+    premiumFieldsEl.hidden = false;
+    premiumEl.closest('.field').hidden = !!flat;
+    premiumEl.disabled = !!flat;
+    premiumEl.required = !flat;
   }
 
   tabStandardEl.addEventListener('click', function () { setMode('standard'); });
@@ -157,6 +191,7 @@
     setOptions(stateEl, states, 'Select a state');
     stateEl.disabled = false;
     resetProduct('Select a state first');
+    syncOptionalFields();
   });
 
   stateEl.addEventListener('change', function () {
@@ -169,10 +204,13 @@
     populateProducts();
   });
 
-  productEl.addEventListener('change', clearResults);
+  productEl.addEventListener('change', function () {
+    clearResults();
+    syncOptionalFields();
+  });
 
   // Recalculate live once every field has a value.
-  [ageEl, premiumEl, productEl, enrollmentEl, coverageEl, effectiveDateEl].forEach(function (el) {
+  [ageEl, premiumEl, zipEl, productEl, enrollmentEl, coverageEl, effectiveDateEl].forEach(function (el) {
     el.addEventListener('input', maybeAutoCalculate);
     el.addEventListener('change', maybeAutoCalculate);
   });
@@ -185,9 +223,10 @@
       return;
     }
     if (!carrierEl.value || !stateEl.value || !productEl.value) { return; }
-    if (ageEl.value !== '' && premiumEl.value !== '') {
-      render(runCalculation());
-    }
+    if (ageEl.value === '') { return; }
+    if (!premiumEl.disabled && premiumEl.value === '') { return; }
+    if (!zipEl.disabled && zipEl.value.length !== 5) { return; }
+    render(runCalculation());
   }
 
   formEl.addEventListener('submit', function (event) {
@@ -209,7 +248,8 @@
       state: stateEl.value,
       product: productEl.value,
       age: ageEl.value,
-      monthlyPremium: premiumEl.value
+      monthlyPremium: premiumEl.value,
+      zip: zipEl.value
     });
   }
 
@@ -264,13 +304,24 @@
     top.appendChild(row('State', result.stateName));
     top.appendChild(row('Product', result.product));
     top.appendChild(row('Client Age', String(result.age)));
-    top.appendChild(row('Monthly Premium', money.format(result.monthlyPremium)));
+    if (result.area != null) {
+      top.appendChild(row('Rating Area', 'Area ' + result.area + ' (ZIP ' + result.zip + ')'));
+    }
+    if (result.pricing !== 'flat') {
+      top.appendChild(row('Monthly Premium', money.format(result.monthlyPremium)));
+    }
     card.appendChild(top);
 
     var mid = document.createElement('div');
     mid.className = 'result-group';
-    mid.appendChild(row('Commission Rate', formatRate(result.rate)));
-    mid.appendChild(row('Annualized Premium', money.format(result.annualizedPremium)));
+    if (result.pricing === 'flat') {
+      // A flat schedule pays a set dollar amount, so there is no rate or
+      // annualized premium to show.
+      mid.appendChild(row('Commission Basis', 'Flat amount, policy year 1'));
+    } else {
+      mid.appendChild(row('Commission Rate', formatRate(result.rate)));
+      mid.appendChild(row('Annualized Premium', money.format(result.annualizedPremium)));
+    }
     mid.appendChild(row('Total First-Year Commission', money.format(result.totalFirstYearCommission), { strong: true }));
     card.appendChild(mid);
 
@@ -304,6 +355,9 @@
     }
     if (result.rate === 0) {
       card.appendChild(noteEl('This schedule pays 0% on this combination. That is the contracted rate, not a missing lookup.'));
+    }
+    if (result.pricing === 'flat' && result.flatAmount === 0) {
+      card.appendChild(noteEl('This schedule pays nothing on this combination. That is what the schedule says, not a missing lookup.'));
     }
     if (result.note) {
       card.appendChild(noteEl(result.note));

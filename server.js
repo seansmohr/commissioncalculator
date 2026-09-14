@@ -39,6 +39,7 @@ var ALLOWED = [
   'styles.css',
   'app.js',
   'engine.js',
+  'data/uhc-areas.js',
   'data/commission-data.js',
   'data/SOURCES.md',
   'README.md'

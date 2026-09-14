@@ -21,6 +21,7 @@ published rates are used anywhere.
 | GTL | "GTL Commission Rates" panel from the carrier portal (screenshot) | not stated on the panel |
 | Heartland | `heartland commission schedules` — **all 10 pages** (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Secure Advantage Flex form 93017; Short-Term Home Health Care rev. 10/23) | GA1 |
 | United American | `United American Commission Schedules.pdf` — **all 7 pages** (Med Supp 1H96 rev. 03-01-22; Other Health 1H97 eff. 01-01-2018; Life & Annuity 1L98 eff. 01-01-2018) | Level 01, Non-Lead Contract |
+| UnitedHealthcare | `uhc commissions.pdf` — **all 69 pages** (agent agreement amendment 09/09/2025; AARP Med Supp schedule for signature dates on/after 10/01/2025 and effective dates on/after 01/01/2026) | Agent level, UnitedHealthcare Insurance Company |
 
 Advance arrangements come from column B of
 `Carrier Advances_Commission schedules.xlsx` and nowhere else — the spreadsheet
@@ -55,6 +56,28 @@ Renewals are prorated as `annual rate ÷ 12 × (13 − effective month)`. Initia
 is never prorated. An effective date outside 2026-2027 returns a message naming
 the year rather than falling back to a nearby schedule.
 
+### These are CMS caps, and one carrier is known to pay less on PPOs
+
+The table above is the CMS-published maximum. UnitedHealthcare's own 2026 MA
+schedule (Exhibit 2 of its agent agreement amendment) shows the Agent-level
+amounts it actually pays, and they split by plan type:
+
+| | CA / NJ | PA | All other states |
+|---|---|---|---|
+| Initial — HMO plans and all SNPs | $864 | $781 | $694 |
+| **Initial — non-SNP PPOs** | **$510** | **$465** | **$406** |
+| Renewal — all MA plans | $432 | $391 | $347 |
+| PDP — initial and renewal | $0 | $0 | $0 |
+
+The HMO/SNP row and the renewal row match the CMS caps exactly. The PPO row does
+not: on a UnitedHealthcare non-SNP PPO the MAPD tab currently overstates the
+initial commission by $288-$354, roughly 41%. UnitedHealthcare also pays **$0**
+on standalone Part D.
+
+The tab is deliberately carrier-agnostic, so this has not been changed. Fixing
+it properly means adding a carrier and plan-type selection to the MAPD tab; the
+data for UnitedHealthcare is transcribed above and ready if we want it.
+
 ## What's modeled
 
 Rates in the lookup table are **first-year (policy year 1)** rates, since that
@@ -71,17 +94,23 @@ These are omissions, not guesses. The calculator returns
 "Commission information not found for this selection." for anything below rather
 than estimating.
 
-1. **UnitedHealthcare — no schedule has been supplied yet.** The file provided
-   as `uhc commission schedule.pdf` is a five-page DocuSign *Certificate Of
-   Completion* for envelope `8950C128-7B23-82CC-828A-A041A5A77351`, subject
-   "Complete with Docusign: SNMA_RHA_DIST.pdf". It is the audit trail, not the
-   signed document: pages 1–2 are signer events and envelope timestamps, pages
-   3–5 the electronic-record disclosure. The certificate itself records
-   "Document Pages: 21" — those 21 pages are the schedule and are not in the
-   file. There is no percent sign anywhere in it, no dollar figure except a
-   `$0.00` per-page copying fee, and its only three images are a logo and two
-   signature bitmaps. UHC is therefore not loaded. It needs the signed
-   `SNMA_RHA_DIST.pdf`.
+1. **UnitedHealthcare — the AARP Medicare Supplement schedule is loaded; two
+   other exhibits in the same document are not.**
+
+   - **UnitedHealthcare Insurance Company OF AMERICA** (Exhibit 3, page 8) is a
+     separate, much lower schedule for the same AARP plans — $100 / $50 / $0 in
+     AZ, IL, NC, NJ and PA, $0 in full for several states. It applies only to
+     agents "specifically authorized by way of a separate notice from the
+     Company". We have not confirmed that authorization, so it is not loaded.
+     If we hold it, the calculator needs to know which insurer wrote the policy.
+   - **Exhibit 2, the 2026 PDP and MA schedule**, is not loaded — the MAPD tab
+     covers Medicare Advantage from the CMS caps. See the note under **MAPD**
+     below: UnitedHealthcare's non-SNP PPO amounts are materially lower than
+     the figures that tab currently shows.
+
+   An earlier file supplied for UHC was a five-page DocuSign *Certificate Of
+   Completion* rather than the document it certified. The full 69-page schedule
+   has since been supplied and is what is transcribed here.
 
 2. **GTL — a rates panel is all the carrier provides.** The source is the
    carrier portal's "GTL Commission Rates" list, which gives a first-year/renewal
@@ -139,6 +168,83 @@ column structure that flat text extraction destroys. Scanned pages with no text
 layer are read visually from page renders. This is how the Aetna, Mutual of
 Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
 right way to add the remaining carriers.
+
+### UnitedHealthcare — AARP Medicare Supplement, flat dollar amounts
+
+Read from all 69 pages. The document is the September 9, 2025 amendment to the
+agent agreement; rate content sits in four exhibits, of which Exhibit 3 is the
+Medicare Supplement schedule loaded here, for **applicant signature dates on or
+after 10/01/2025 and policy effective dates on or after 01/01/2026**.
+
+**This carrier pays flat dollars, not a percentage.** Every other carrier in the
+calculator pays a percentage of premium; UnitedHealthcare pays a set amount per
+policy year that does not vary with premium at all. Rules therefore carry
+`flatAmount` rather than `rate`, and the premium input disappears from the form
+when one of these products is selected — asking for a number that cannot change
+the answer would imply that it does. Amounts are Agent-level and, per the
+schedule, "net of compensation payable to all lower sales levels".
+
+**Four of our states are area-rated by ZIP code.** The schedule says plainly:
+"The applicable Area is determined based on the applicant's permanent
+residential address and the applicable AREA CHART for the state [in Appendix
+C]". Florida has 4 areas, Louisiana 2, Nevada 2, Pennsylvania 3 — and the
+spread is large: Florida Plans B/C/F/G pay **$582** in Area 1 against **$431**
+in Area 3, a $151 difference on the same policy. The calculator asks for the
+applicant's ZIP in those four states and nowhere else.
+
+Appendix C's charts for those four states are transcribed into
+`data/uhc-areas.js` — 4,667 ZIP codes stored as inclusive ranges. The areas
+partition cleanly; a test walks every range and asserts no ZIP falls in two
+areas of the same state. The charts for MI, MO, NE, NY and WI are not
+transcribed, as we are not appointed there.
+
+**Year-1 Agent-level amounts, age 65+, for our states:**
+
+| State | Plan group | Year 1 |
+|---|---|---|
+| AZ, IL, NC | B, C, D, F, G, Select G / N, Select N / A, K, L | $315 / $252 / $126 |
+| OH, TX | B, C, D, F, G, Select G / N, Select N / A, K, L | $315 / $252 / $126 |
+| VA | B, C, F, G, Select G / N, Select N / A, K, L | $360 / $288 / $96 |
+| CA | B, C, F, G / N / A, K, L | $360 / $288 / $144 |
+| NJ | B, C, D, F, G / N / A, K, L | $510 / $408 / $126 |
+| ID | B, C, F, G / N / A, K, L | $100 / $50 / **$0** |
+| FL Areas 1-4 | B, C, F, G, Select G | $582 / $468.25 / $431 / $443.25 |
+| FL Areas 1-4 | High-Deductible G | $141.50 / $114.25 / $105 / $108 |
+| LA Areas 1-2 | B, C, F, G, Select G | $315 / $255 |
+| NV Areas 1-2 | B, C, F, G | $360 / $270 |
+| PA Areas 1-3 | B, C, F, G | $360 / $315 / $255 |
+
+High-Deductible G appears on the Florida rows only. Idaho's Plans A, K and L
+pay a documented **$0** — reported as $0, not as a missing lookup.
+
+**Under 65 is handled, because the rules differ sharply by state.** Condition
+(g) of the schedule says commission is not payable for an applicant under 65
+"except as noted in the following states where required", and of our states
+that list names CA, FL, ID, IL and PA. So:
+
+- **AZ, LA, NC, NJ, NV, OH, TX, VA** — nothing is payable under 65.
+- **FL, ID, IL** — the full age 65+ amount applies.
+- **PA** — "for years 1-6, commissions for all levels will be paid at 5% of the
+  65+ rates", so a PA Area 1 Plan G under 65 pays $18.00 rather than $360.00.
+- **CA** — the 65+ amount, but only during the applicant's first six months of
+  Medicare Part B enrollment. The results card carries that condition.
+
+**Advance:** nine months, stated in the schedule itself — "A nine-month
+commission advance is paid on all AARP Med Supp Plan sales once the first month
+premium has been paid". No advance is paid on internal replacements. For a flat
+amount the advance is nine twelfths of the year-1 figure.
+
+**Modeled as year 1 only, as everywhere else.** Two renewal-side details are
+worth knowing even so: Ohio and Texas band their renewal years 2-7 and 8-10
+rather than 2-6 and 7-10, and guaranteed-issue business outside open enrollment
+pays only 5% of the 65+ amount for years 1-6 (1-7 in OH and TX) in every one of
+our states except FL and ID. A sale replacing another carrier's Medicare
+Supplement pays the year 2 amount in year 1.
+
+**Not loaded, deliberately:** the schedule for AARP plans insured by
+UnitedHealthcare Insurance Company **of America** (a separate, much lower table
+on the following page) and Exhibit 2, the 2026 PDP and MA schedule. Both are
+covered under **Known gaps**.
 
 ### United American — loaded from all three schedules
 

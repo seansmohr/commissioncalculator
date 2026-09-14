@@ -110,7 +110,7 @@ label {
   color: var(--muted);
 }
 
-select, input[type="number"], input[type="date"] {
+select, input[type="number"], input[type="date"], input[type="text"] {
   width: 100%;
   padding: .6rem .7rem;
   font-size: 1rem;
@@ -179,6 +179,13 @@ select:disabled, input:disabled {
 }
 
 .btn:hover { background: var(--accent-hover); }
+
+.field__hint {
+  margin: .35rem 0 0;
+  font-size: .78rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
 
 .results { margin-top: 1.25rem; }
 

@@ -81,6 +81,41 @@
     ).sort();
   }
 
+  /**
+   * Does this carrier + state need the applicant's ZIP code?
+   *
+   * True only where the carrier's rules for that state are split by rating area
+   * - UnitedHealthcare's AARP Medicare Supplement in FL, LA, NV and PA. Every
+   * other combination ignores ZIP entirely.
+   */
+  function needsZip(carrier, state) {
+    if (!carrier || !state) { return false; }
+    return DATA.rules.some(function (r) {
+      return r.carrier === carrier &&
+        r.states.indexOf(state) !== -1 &&
+        r.area != null;
+    });
+  }
+
+  /** The rating area for a ZIP, or null when the state is not area-rated. */
+  function areaForZip(state, zip) {
+    if (!DATA.zipAreas) { return null; }
+    return DATA.zipAreas.areaForZip(state, zip);
+  }
+
+  /**
+   * True when this carrier + state + product pays a flat dollar amount rather
+   * than a percentage of premium, so the premium input is not needed.
+   */
+  function isFlatAmountProduct(carrier, state, product) {
+    return DATA.rules.some(function (r) {
+      return r.carrier === carrier &&
+        r.states.indexOf(state) !== -1 &&
+        r.product === product &&
+        r.flatAmount != null;
+    });
+  }
+
   function ageMatches(rule, age) {
     if (rule.minAge != null && age < rule.minAge) { return false; }
     if (rule.maxAge != null && age > rule.maxAge) { return false; }
@@ -91,12 +126,13 @@
    * Find the single commission rule for carrier + state + product + age.
    * Returns null when nothing matches - the calculator never estimates.
    */
-  function findRule(carrier, state, product, age) {
+  function findRule(carrier, state, product, age, area) {
     var matches = DATA.rules.filter(function (r) {
       return r.carrier === carrier &&
         r.states.indexOf(state) !== -1 &&
         r.product === product &&
-        ageMatches(r, age);
+        ageMatches(r, age) &&
+        (r.area == null || r.area === area);
     });
     if (matches.length === 0) { return null; }
 
@@ -266,11 +302,31 @@
     if (age == null || age < 0 || age > 120) {
       return { found: false, message: 'Enter a valid client age.' };
     }
-    if (monthlyPremium == null || monthlyPremium <= 0) {
+
+    // Area-rated carriers need the applicant's ZIP before anything can be
+    // looked up. Say which input is missing rather than reporting "not found".
+    var area = null;
+    if (needsZip(carrier, state)) {
+      var zip = input.zip == null ? '' : String(input.zip).trim();
+      if (!/^[0-9]{5}$/.test(zip)) {
+        return { found: false, message: 'Enter the applicant\u2019s 5-digit ZIP code.' };
+      }
+      area = areaForZip(state, zip);
+      if (area == null) {
+        return {
+          found: false,
+          message: 'ZIP ' + zip + ' is not in the ' + (DATA.appointedStates[state] || state) +
+            ' area chart for this carrier.'
+        };
+      }
+    }
+
+    var flat = isFlatAmountProduct(carrier, state, product);
+    if (!flat && (monthlyPremium == null || monthlyPremium <= 0)) {
       return { found: false, message: 'Enter a valid monthly premium.' };
     }
 
-    var rule = findRule(carrier, state, product, age);
+    var rule = findRule(carrier, state, product, age, area);
     if (!rule) {
       return { found: false, message: NOT_FOUND };
     }
@@ -284,9 +340,11 @@
       return { found: false, message: NOT_FOUND };
     }
 
-    var rate = rule.rate;
-    var annualizedPremium = monthlyPremium * 12;
-    var totalFirstYearCommission = annualizedPremium * rate;
+    // A flat-amount rule pays a fixed dollar figure for policy year 1 and takes
+    // no premium at all; a rate rule is a percentage of annualized premium.
+    var totalFirstYearCommission = rule.flatAmount != null
+      ? rule.flatAmount
+      : monthlyPremium * 12 * rule.rate;
 
     var result = {
       found: true,
@@ -296,9 +354,6 @@
       product: product,
       category: rule.category,
       age: age,
-      monthlyPremium: monthlyPremium,
-      rate: rate,
-      annualizedPremium: annualizedPremium,
       totalFirstYearCommission: totalFirstYearCommission,
       advanceMonths: advanceMonths,
       note: rule.note || null,
@@ -306,18 +361,33 @@
       advanceSource: getAdvanceSource(carrier)
     };
 
+    if (rule.flatAmount != null) {
+      result.pricing = 'flat';
+      result.flatAmount = rule.flatAmount;
+      if (area != null) {
+        result.area = area;
+        result.zip = String(input.zip).trim();
+      }
+    } else {
+      result.pricing = 'rate';
+      result.monthlyPremium = monthlyPremium;
+      result.rate = rule.rate;
+      result.annualizedPremium = monthlyPremium * 12;
+    }
+
     if (advanceMonths === null) {
       // Rate is known, advance term is not. Report the commission and say so
       // rather than inventing an upfront figure.
       result.paymentMethod = 'advance-unknown';
     } else if (advanceMonths > 0) {
+      // The advance is that many months' worth of the first-year commission.
       result.paymentMethod = 'advance';
-      result.upfrontCommission = monthlyPremium * advanceMonths * rate;
-      result.remainingAsEarned = totalFirstYearCommission - result.upfrontCommission;
+      result.upfrontCommission = round2(totalFirstYearCommission / 12 * advanceMonths);
+      result.remainingAsEarned = round2(totalFirstYearCommission - result.upfrontCommission);
       result.remainingMonths = 12 - advanceMonths;
     } else {
       result.paymentMethod = 'as-earned';
-      result.monthlyCommission = monthlyPremium * rate;
+      result.monthlyCommission = round2(totalFirstYearCommission / 12);
     }
 
     return result;
@@ -330,6 +400,9 @@
     getStates: getStates,
     getProducts: getProducts,
     findRule: findRule,
+    needsZip: needsZip,
+    areaForZip: areaForZip,
+    isFlatAmountProduct: isFlatAmountProduct,
     getAdvanceMonths: getAdvanceMonths,
     calculate: calculate,
     MAPD_CARRIER: MAPD ? MAPD.carrier : null,

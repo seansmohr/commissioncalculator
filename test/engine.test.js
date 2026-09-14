@@ -43,10 +43,19 @@ test('every rule state is an appointed state', function () {
   });
 });
 
-test('every rule has a numeric rate between 0 and 2', function () {
+test('every rule prices either as a rate or as a flat amount, never both', function () {
   DATA.rules.forEach(function (r) {
-    assert.ok(typeof r.rate === 'number' && isFinite(r.rate), 'bad rate on ' + r.carrier + ' / ' + r.product);
-    assert.ok(r.rate >= 0 && r.rate <= 2, 'out-of-range rate ' + r.rate + ' on ' + r.carrier + ' / ' + r.product);
+    var where = r.carrier + ' / ' + r.product;
+    var hasRate = r.rate != null;
+    var hasFlat = r.flatAmount != null;
+    assert.ok(hasRate !== hasFlat, where + ' must have exactly one of rate / flatAmount');
+    if (hasRate) {
+      assert.ok(typeof r.rate === 'number' && isFinite(r.rate), 'bad rate on ' + where);
+      assert.ok(r.rate >= 0 && r.rate <= 2, 'out-of-range rate ' + r.rate + ' on ' + where);
+    } else {
+      assert.ok(typeof r.flatAmount === 'number' && isFinite(r.flatAmount), 'bad flatAmount on ' + where);
+      assert.ok(r.flatAmount >= 0 && r.flatAmount <= 2000, 'out-of-range flatAmount ' + r.flatAmount + ' on ' + where);
+    }
   });
 });
 
@@ -61,7 +70,7 @@ test('age bands within a carrier/state/product do not overlap', function () {
   var buckets = {};
   DATA.rules.forEach(function (r) {
     r.states.forEach(function (s) {
-      var key = r.carrier + '|' + s + '|' + r.product;
+      var key = r.carrier + '|' + s + '|' + r.product + '|' + (r.area == null ? '-' : r.area);
       (buckets[key] = buckets[key] || []).push(r);
     });
   });
@@ -80,12 +89,18 @@ test('every product listed in a dropdown resolves for at least one age', functio
   // it is checked separately below.
   engine.getCarriers().filter(function (c) { return !engine.isMapd(c); }).forEach(function (carrier) {
     engine.getStates(carrier).forEach(function (state) {
+      var areas = engine.needsZip(carrier, state.code)
+        ? Object.keys(DATA.zipAreas.zipAreas[state.code]).map(Number)
+        : [null];
       engine.getProducts(carrier, state.code).forEach(function (product) {
-        var hit = false;
-        for (var age = 0; age <= 100 && !hit; age++) {
-          if (engine.findRule(carrier, state.code, product, age)) { hit = true; }
-        }
-        assert.ok(hit, 'no age resolves ' + carrier + ' / ' + state.code + ' / ' + product);
+        areas.forEach(function (area) {
+          var hit = false;
+          for (var age = 0; age <= 100 && !hit; age++) {
+            if (engine.findRule(carrier, state.code, product, age, area)) { hit = true; }
+          }
+          assert.ok(hit, 'no age resolves ' + carrier + ' / ' + state.code + ' / ' + product +
+            (area == null ? '' : ' / area ' + area));
+        });
       });
     });
   });
@@ -947,7 +962,7 @@ test('calculate() still delegates to the MAPD path when handed the MAPD carrier'
 test('MAPD is not a carrier and stays out of the carrier list', function () {
   var carriers = engine.getCarriers();
   assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
-  assert.strictEqual(carriers.length, 13, 'the carrier list is the thirteen real carriers');
+  assert.strictEqual(carriers.length, 14, 'the carrier list is the fourteen real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
   assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
@@ -1074,6 +1089,197 @@ test('existing percentage-of-premium carriers are untouched by MAPD', function (
   close(r.rate, 0.25, 'rate');
   close(r.upfrontCommission, 300, 'upfront');
   assert.strictEqual(r.advanceMonths, 12);
+});
+
+console.log('\nUnitedHealthcare (AARP Medicare Supplement)');
+
+var MS = 'AARP Medicare Supplement - ';
+
+function uhc(state, product, age, zip) {
+  return engine.calculate({
+    carrier: 'UnitedHealthcare', state: state, product: MS + product,
+    age: age, zip: zip, monthlyPremium: 150
+  });
+}
+
+test('UnitedHealthcare is in the carrier list with a 9 month advance', function () {
+  assert.ok(engine.getCarriers().indexOf('UnitedHealthcare') !== -1);
+  assert.strictEqual(engine.getAdvanceMonths('UnitedHealthcare', 'medicare_supplement'), 9);
+});
+
+test('a flat schedule pays a set amount and ignores premium entirely', function () {
+  var cheap = engine.calculate({
+    carrier: 'UnitedHealthcare', state: 'NJ', product: MS + 'Plans B, C, D, F, G',
+    age: 70, monthlyPremium: 10
+  });
+  var dear = engine.calculate({
+    carrier: 'UnitedHealthcare', state: 'NJ', product: MS + 'Plans B, C, D, F, G',
+    age: 70, monthlyPremium: 900
+  });
+  assert.ok(cheap.found && dear.found);
+  assert.strictEqual(cheap.pricing, 'flat');
+  close(cheap.totalFirstYearCommission, 510, 'cheap');
+  close(dear.totalFirstYearCommission, 510, 'dear');
+  assert.strictEqual(cheap.rate, undefined, 'a flat rule has no percentage rate');
+  assert.strictEqual(cheap.monthlyPremium, undefined, 'a flat rule does not echo premium');
+  assert.strictEqual(cheap.annualizedPremium, undefined);
+});
+
+test('a flat schedule resolves with no premium supplied at all', function () {
+  var r = engine.calculate({
+    carrier: 'UnitedHealthcare', state: 'NJ', product: MS + 'Plans B, C, D, F, G', age: 70
+  });
+  assert.ok(r.found, 'premium is not required for a flat-amount product');
+  close(r.totalFirstYearCommission, 510, 'amount');
+});
+
+test('percentage carriers still require a premium', function () {
+  var r = engine.calculate({
+    carrier: 'Aetna Senior Supplemental', state: 'CA',
+    product: 'Medicare Supplement - All marketed plans (incl. Plan N)', age: 68
+  });
+  assert.strictEqual(r.found, false);
+  assert.strictEqual(r.message, 'Enter a valid monthly premium.');
+});
+
+test('the 9 month advance is nine months worth of the flat amount', function () {
+  var r = uhc('NJ', 'Plans B, C, D, F, G', 70);
+  assert.strictEqual(r.advanceMonths, 9);
+  assert.strictEqual(r.paymentMethod, 'advance');
+  close(r.upfrontCommission, 382.50, 'upfront');
+  close(r.remainingAsEarned, 127.50, 'remaining');
+  assert.strictEqual(r.remainingMonths, 3);
+});
+
+test('area-rated states ask for a ZIP before answering', function () {
+  var r = uhc('PA', 'Plans B, C, F, G', 70);
+  assert.strictEqual(r.found, false);
+  assert.ok(/ZIP code/.test(r.message), 'should ask for the ZIP, got: ' + r.message);
+  assert.notStrictEqual(r.message, engine.NOT_FOUND);
+});
+
+test('a ZIP outside the state chart is named as such, not reported as missing data', function () {
+  var r = uhc('PA', 'Plans B, C, F, G', 70, '90210');
+  assert.strictEqual(r.found, false);
+  assert.ok(/not in the Pennsylvania area chart/.test(r.message), r.message);
+});
+
+test('the ZIP picks the rating area and the amount follows it', function () {
+  var philly = uhc('PA', 'Plans B, C, F, G', 70, '19103');
+  var pitt = uhc('PA', 'Plans B, C, F, G', 70, '15213');
+  assert.strictEqual(philly.area, 1);
+  assert.strictEqual(pitt.area, 2);
+  close(philly.totalFirstYearCommission, 360, 'PA area 1');
+  close(pitt.totalFirstYearCommission, 315, 'PA area 2');
+});
+
+test('all four Florida areas carry their own amounts', function () {
+  close(uhc('FL', 'Plans B, C, F, G, Select G', 70, '33101').totalFirstYearCommission, 582.00, 'area 1');
+  close(uhc('FL', 'Plans B, C, F, G, Select G', 70, '32003').totalFirstYearCommission, 443.25, 'area 4');
+  close(uhc('FL', 'High-Deductible G', 70, '33101').totalFirstYearCommission, 141.50, 'HDG area 1');
+  close(uhc('FL', 'High-Deductible G', 70, '32003').totalFirstYearCommission, 108.00, 'HDG area 4');
+});
+
+test('High-Deductible G is a Florida-only product on this schedule', function () {
+  assert.ok(engine.getProducts('UnitedHealthcare', 'FL').indexOf(MS + 'High-Deductible G') !== -1);
+  assert.ok(engine.getProducts('UnitedHealthcare', 'PA').indexOf(MS + 'High-Deductible G') === -1);
+});
+
+test('states that are not area-rated need no ZIP', function () {
+  ['AZ', 'CA', 'ID', 'IL', 'NC', 'NJ', 'OH', 'TX', 'VA'].forEach(function (st) {
+    assert.strictEqual(engine.needsZip('UnitedHealthcare', st), false, st + ' should not need a ZIP');
+  });
+  ['FL', 'LA', 'NV', 'PA'].forEach(function (st) {
+    assert.strictEqual(engine.needsZip('UnitedHealthcare', st), true, st + ' should need a ZIP');
+  });
+  assert.strictEqual(engine.needsZip('Aetna Senior Supplemental', 'CA'), false);
+});
+
+test('under 65 pays nothing in the states the schedule excludes', function () {
+  ['AZ', 'NC', 'NJ', 'OH', 'TX', 'VA'].forEach(function (st) {
+    var product = st === 'VA' ? 'Plans B, C, F, G, Select G' : 'Plans B, C, D, F, G, Select G';
+    if (st === 'NJ') { product = 'Plans B, C, D, F, G'; }
+    var r = engine.calculate({
+      carrier: 'UnitedHealthcare', state: st, product: MS + product, age: 60
+    });
+    assert.ok(r.found, st + ': a documented zero is still a hit');
+    close(r.totalFirstYearCommission, 0, st);
+  });
+  close(uhc('LA', 'Plans B, C, F, G, Select G', 60, '70112').totalFirstYearCommission, 0, 'LA');
+  close(uhc('NV', 'Plans B, C, F, G', 60, '89101').totalFirstYearCommission, 0, 'NV');
+});
+
+test('under 65 pays the full 65+ amount in FL, ID and IL', function () {
+  close(uhc('FL', 'Plans B, C, F, G, Select G', 60, '33101').totalFirstYearCommission, 582.00, 'FL');
+  close(uhc('ID', 'Plans B, C, F, G', 60).totalFirstYearCommission, 100.00, 'ID');
+  close(uhc('IL', 'Plans B, C, D, F, G, Select G', 60).totalFirstYearCommission, 315.00, 'IL');
+});
+
+test('Pennsylvania under 65 pays 5% of the 65+ amount', function () {
+  close(uhc('PA', 'Plans B, C, F, G', 60, '19103').totalFirstYearCommission, 18.00, 'PA area 1');
+  close(uhc('PA', 'Plans B, C, F, G', 60, '15213').totalFirstYearCommission, 15.75, 'PA area 2');
+});
+
+test('California under 65 is flagged for the Part B enrollment window', function () {
+  var r = uhc('CA', 'Plans B, C, F, G', 60);
+  close(r.totalFirstYearCommission, 360.00, 'CA');
+  assert.ok(/first six months of Medicare Part B/.test(r.note), 'note should carry the CA condition');
+});
+
+test('Idaho plans A, K and L pay a documented zero', function () {
+  var r = uhc('ID', 'Plans A, K, L', 70);
+  assert.ok(r.found);
+  close(r.totalFirstYearCommission, 0, 'ID A/K/L');
+  close(r.upfrontCommission, 0, 'advance on zero');
+});
+
+test('every UnitedHealthcare rule is a flat amount, never a rate', function () {
+  var rules = DATA.rules.filter(function (r) { return r.carrier === 'UnitedHealthcare'; });
+  assert.ok(rules.length > 0);
+  rules.forEach(function (r) {
+    assert.strictEqual(r.rate, undefined, r.product + ' should not carry a percentage rate');
+    assert.strictEqual(typeof r.flatAmount, 'number', r.product + ' should carry a flat amount');
+  });
+});
+
+test('every area-rated rule names an area, and no other carrier does', function () {
+  DATA.rules.forEach(function (r) {
+    if (r.area == null) { return; }
+    assert.strictEqual(r.carrier, 'UnitedHealthcare', 'only UHC is area-rated');
+    assert.ok(['FL', 'LA', 'NV', 'PA'].indexOf(r.states[0]) !== -1, 'unexpected area state ' + r.states[0]);
+  });
+});
+
+test('the ZIP chart partitions each state - no ZIP lands in two areas', function () {
+  var chart = DATA.zipAreas.zipAreas;
+  Object.keys(chart).forEach(function (state) {
+    var seen = {};
+    Object.keys(chart[state]).forEach(function (area) {
+      chart[state][area].forEach(function (range) {
+        var dash = range.indexOf('-');
+        var lo = dash === -1 ? Number(range) : Number(range.slice(0, dash));
+        var hi = dash === -1 ? lo : Number(range.slice(dash + 1));
+        assert.ok(hi >= lo, 'backwards range ' + range + ' in ' + state);
+        for (var n = lo; n <= hi; n++) {
+          assert.ok(!seen[n], 'ZIP ' + n + ' is in two ' + state + ' areas');
+          seen[n] = area;
+        }
+      });
+    });
+  });
+});
+
+test('known city ZIPs land in the expected areas', function () {
+  var a = DATA.zipAreas.areaForZip;
+  assert.strictEqual(a('FL', '33101'), 1, 'Miami');
+  assert.strictEqual(a('LA', '70112'), 1, 'New Orleans');
+  assert.strictEqual(a('NV', '89101'), 1, 'Las Vegas');
+  assert.strictEqual(a('NV', '89501'), 2, 'Reno');
+  assert.strictEqual(a('PA', '19103'), 1, 'Philadelphia');
+  assert.strictEqual(a('PA', '15213'), 2, 'Pittsburgh');
+  assert.strictEqual(a('TX', '75001'), null, 'TX is not area-rated');
+  assert.strictEqual(a('PA', '191'), null, 'a short ZIP is not a match');
+  assert.strictEqual(a('PA', 'abcde'), null, 'a non-numeric ZIP is not a match');
 });
 
 console.log('\nUnited American');
