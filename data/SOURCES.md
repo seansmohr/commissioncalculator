@@ -8,6 +8,7 @@ published rates are used anywhere.
 
 | Carrier | Schedule read | Our contract level |
 |---|---|---|
+| Anthem Blue Cross | `brk-2026CAMedSup CommSch.pdf` — **both pages** (California Medicare Supplement, effective 03/01/2026) | Broker (the schedule states one level) |
 | Aetna Senior Supplemental | `aetna senior supplemental commission schedule.pdf` (rev. 07/23/2026, BRKPRDXX2_12) — **all 9 pages** | General Agent, Level 12 |
 | Mutual of Omaha | `Mutual of Omaha Commission Schedule.pdf` (MT0044_0526, eff. 05/01/2026) — **all 16 pages** | General Agent (BMO151) |
 | Healthspring | Loyal American Life commission schedule (eff. 04/07/2025) — **all 5 pages** | GA-60 |
@@ -168,6 +169,51 @@ column structure that flat text extraction destroys. Scanned pages with no text
 layer are read visually from page renders. This is how the Aetna, Mutual of
 Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
 right way to add the remaining carriers.
+
+### Anthem Blue Cross — California only, flat dollar amounts
+
+Two pages, read with coordinate extraction and confirmed against a render of
+page 1. The schedule is the California Medicare Supplement Commission Schedule
+effective **March 1, 2026**, and applies to individual policies with a coverage
+effective date on or after that day. We write Anthem in California only, so
+every rule is CA.
+
+Anthem is the second flat-amount carrier in the calculator: it pays a set dollar
+figure per policy year, not a percentage of premium. The schedule is explicit
+that the 65+ figures are annual and paid monthly — "$720.00/12 = $60 a month".
+
+**Age 65+ — Plans A, F, Innovative F, G and N:**
+
+| Enrollment type | Year 1 | Years 2-6 | Years 7-10 | Years 11+ |
+|---|---|---|---|---|
+| Open Enrollment & Underwritten | **$720.00** | $360.00 | $300.00 | $120.00 |
+| Guaranteed Issue | **$240.00** | $180.00 | $120.00 | $0.00 |
+
+**Enrollment type needed a product split.** Guaranteed issue pays a third of
+what open enrollment or underwritten business pays — $240 against $720 — and
+nothing in the calculator's inputs can tell those apart, since both are age 65+
+on the same plans. So the enrollment type is carried in the product name and the
+agent picks it, the same approach used for United American's under-65 split. The
+schedule's own definitions are on the results card: open enrollment is an
+applicant turning 65 or enrolling in Part B for the first time, underwritten is
+one who goes through medical underwriting and is approved, and guaranteed issue
+is one with a GI right situation who applies in the required timeframe.
+
+**Pre-65 pays no commission at all.** The second table gives a flat **$5 yearly
+administrative fee** for years 1-6 on the same plans. That is what the
+calculator reports, with a note saying plainly that it is a fee rather than a
+commission. It is neither advanced nor paid monthly, so the rule carries
+`paidAnnually` and the card shows "Paid Annually" instead of dividing $5 by
+twelve and printing 42 cents a month.
+
+**Advance:** nine months, stated on the schedule — "Anthem Blue Cross (Company)
+will advance commissions for 9 months for new Medicare Supplement members in a
+lump sum payment based on the initial month's commission calculation". On the
+$720 band that is $540 up front, which is exactly the schedule's own $60 a month
+× 9. The advance is tracked monthly as it earns out, and Anthem reserves the
+right to discontinue the advance program without notice.
+
+Only policy year 1 is modeled, as everywhere else in this file.
 
 ### UnitedHealthcare — AARP Medicare Supplement, flat dollar amounts
 

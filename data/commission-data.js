@@ -101,6 +101,10 @@
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary"'
     },
+    'Anthem Blue Cross': {
+      default: 9,
+      source: 'California Medicare Supplement schedule: "Anthem Blue Cross (Company) will advance commissions for 9 months for new Medicare Supplement members in a lump sum payment based on the initial month\u2019s commission calculation." The pre-65 administrative fee is not advanced.'
+    },
     'UnitedHealthcare': {
       default: 9,
       source: 'AARP Medicare Supplement schedule, condition (c): "A nine-month commission advance is paid on all AARP Med Supp Plan sales once the first month premium has been paid." No advance is paid on internal replacements.'
@@ -1849,6 +1853,61 @@
         add([under]);
       });
     });
+  }());
+
+
+  // ===========================================================================
+  // ANTHEM BLUE CROSS  (California only) - 9 month advance
+  //
+  // Source: "CALIFORNIA Medicare Supplement Commission Schedule, Effective
+  // March 1, 2026" (2026 March_CA MedSup schedule final, lbah12162025tg01142026).
+  // Applies to individual Medicare Supplement policies with a coverage effective
+  // date on or after 03/01/2026.
+  //
+  // We write Anthem in California only, so every rule below is CA.
+  //
+  // Like UnitedHealthcare, Anthem pays a flat dollar amount per policy year
+  // rather than a percentage of premium, so these rules carry `flatAmount`.
+  // The schedule states the 65+ figures as annual amounts paid monthly
+  // ("$720.00/12 = $60 a month").
+  //
+  // The 65+ table splits by ENROLLMENT TYPE, and the gap is threefold - $720 on
+  // open enrollment or underwritten business against $240 on guaranteed issue.
+  // Age cannot distinguish those, so the enrollment type is carried in the
+  // product name and the agent picks it.
+  // ===========================================================================
+  (function anthemBlueCross() {
+    var ANTHEM = 'Anthem Blue Cross';
+    var PLANS = 'Plans A, F, Innovative F, G, N';
+
+    var BASE = 'Flat amount for policy year 1, not a percentage of premium. The schedule states 65+ figures as an annual rate paid monthly ($720.00/12 = $60 a month). Applies to coverage effective on or after 03/01/2026.';
+
+    add([
+      {
+        carrier: ANTHEM, states: ['CA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement 65+ - ' + PLANS + ' (Open Enrollment or Underwritten)',
+        minAge: 65, flatAmount: 720.00,
+        note: BASE + ' Open enrollment covers applicants turning 65 or enrolling in Medicare Part B for the first time; underwritten covers applicants who go through medical underwriting and are approved.'
+      },
+      {
+        carrier: ANTHEM, states: ['CA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement 65+ - ' + PLANS + ' (Guaranteed Issue)',
+        minAge: 65, flatAmount: 240.00,
+        note: BASE + ' Guaranteed issue covers applicants who have a GI right situation, apply within the required timeframe and are approved. It pays a third of the open enrollment / underwritten amount.'
+      },
+
+      // Pre-65 is not a commission at all - the schedule pays a flat $5 yearly
+      // administrative fee for years 1-6. It is neither advanced nor paid
+      // monthly, so the rule says so rather than letting the card divide it by
+      // twelve.
+      {
+        carrier: ANTHEM, states: ['CA'], category: 'medicare_supplement',
+        product: 'Medicare Supplement Pre-65 - ' + PLANS,
+        maxAge: 64, flatAmount: 5.00,
+        advanceMonths: 0, paidAnnually: true,
+        note: 'Anthem pays no commission on pre-65 Medicare Supplement. The schedule pays a $5 yearly administrative fee for years 1 through 6, which is the figure shown. It is not advanced and not paid monthly.'
+      }
+    ]);
   }());
 
   // ---------------------------------------------------------------------------

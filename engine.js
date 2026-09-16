@@ -385,6 +385,10 @@
       result.upfrontCommission = round2(totalFirstYearCommission / 12 * advanceMonths);
       result.remainingAsEarned = round2(totalFirstYearCommission - result.upfrontCommission);
       result.remainingMonths = 12 - advanceMonths;
+    } else if (rule.paidAnnually) {
+      // Paid once for the year. Dividing it by twelve would invent a monthly
+      // figure the schedule does not pay.
+      result.paymentMethod = 'annual';
     } else {
       result.paymentMethod = 'as-earned';
       result.monthlyCommission = round2(totalFirstYearCommission / 12);

@@ -962,7 +962,7 @@ test('calculate() still delegates to the MAPD path when handed the MAPD carrier'
 test('MAPD is not a carrier and stays out of the carrier list', function () {
   var carriers = engine.getCarriers();
   assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
-  assert.strictEqual(carriers.length, 14, 'the carrier list is the fourteen real carriers');
+  assert.strictEqual(carriers.length, 15, 'the carrier list is the fifteen real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
   assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
@@ -1089,6 +1089,90 @@ test('existing percentage-of-premium carriers are untouched by MAPD', function (
   close(r.rate, 0.25, 'rate');
   close(r.upfrontCommission, 300, 'upfront');
   assert.strictEqual(r.advanceMonths, 12);
+});
+
+console.log('\nAnthem Blue Cross');
+
+var ANTHEM_PLANS = 'Plans A, F, Innovative F, G, N';
+
+function anthem(product, age) {
+  return engine.calculate({
+    carrier: 'Anthem Blue Cross', state: 'CA', product: product, age: age
+  });
+}
+
+test('Anthem Blue Cross is California only', function () {
+  assert.ok(engine.getCarriers().indexOf('Anthem Blue Cross') !== -1);
+  assert.deepStrictEqual(
+    engine.getStates('Anthem Blue Cross').map(function (s) { return s.code; }),
+    ['CA']
+  );
+  DATA.rules.filter(function (r) { return r.carrier === 'Anthem Blue Cross'; })
+    .forEach(function (r) {
+      assert.deepStrictEqual(r.states, ['CA'], r.product + ' should be CA only');
+    });
+});
+
+test('open enrollment / underwritten pays $720 for policy year 1', function () {
+  var r = anthem('Medicare Supplement 65+ - ' + ANTHEM_PLANS + ' (Open Enrollment or Underwritten)', 70);
+  assert.ok(r.found);
+  assert.strictEqual(r.pricing, 'flat');
+  close(r.totalFirstYearCommission, 720, 'year 1');
+});
+
+test('guaranteed issue pays a third of that, and the split is by product', function () {
+  var gi = anthem('Medicare Supplement 65+ - ' + ANTHEM_PLANS + ' (Guaranteed Issue)', 70);
+  close(gi.totalFirstYearCommission, 240, 'GI year 1');
+});
+
+test('the 9 month advance is $540, matching the schedule’s own $60 a month', function () {
+  var r = anthem('Medicare Supplement 65+ - ' + ANTHEM_PLANS + ' (Open Enrollment or Underwritten)', 70);
+  assert.strictEqual(r.advanceMonths, 9);
+  assert.strictEqual(r.paymentMethod, 'advance');
+  close(r.upfrontCommission, 540, 'advance');
+  close(r.remainingAsEarned, 180, 'remaining');
+  assert.strictEqual(r.remainingMonths, 3);
+});
+
+test('premium never changes an Anthem answer', function () {
+  var a = engine.calculate({
+    carrier: 'Anthem Blue Cross', state: 'CA',
+    product: 'Medicare Supplement 65+ - ' + ANTHEM_PLANS + ' (Guaranteed Issue)',
+    age: 70, monthlyPremium: 15
+  });
+  var b = engine.calculate({
+    carrier: 'Anthem Blue Cross', state: 'CA',
+    product: 'Medicare Supplement 65+ - ' + ANTHEM_PLANS + ' (Guaranteed Issue)',
+    age: 70, monthlyPremium: 750
+  });
+  close(a.totalFirstYearCommission, b.totalFirstYearCommission, 'premium must not matter');
+  assert.strictEqual(a.monthlyPremium, undefined);
+});
+
+test('pre-65 is a $5 yearly administrative fee, not advanced and not monthly', function () {
+  var r = anthem('Medicare Supplement Pre-65 - ' + ANTHEM_PLANS, 58);
+  assert.ok(r.found);
+  close(r.totalFirstYearCommission, 5, 'admin fee');
+  assert.strictEqual(r.advanceMonths, 0, 'the fee is not advanced');
+  assert.strictEqual(r.paymentMethod, 'annual');
+  assert.strictEqual(r.monthlyCommission, undefined, 'must not invent a monthly figure');
+  assert.strictEqual(r.upfrontCommission, undefined);
+  assert.ok(/administrative fee/.test(r.note));
+});
+
+test('the 65+ products do not answer for a pre-65 applicant, or the reverse', function () {
+  assert.strictEqual(
+    anthem('Medicare Supplement 65+ - ' + ANTHEM_PLANS + ' (Guaranteed Issue)', 60).message,
+    engine.NOT_FOUND
+  );
+  assert.strictEqual(
+    anthem('Medicare Supplement Pre-65 - ' + ANTHEM_PLANS, 70).message,
+    engine.NOT_FOUND
+  );
+});
+
+test('Anthem needs no ZIP - only UnitedHealthcare is area-rated', function () {
+  assert.strictEqual(engine.needsZip('Anthem Blue Cross', 'CA'), false);
 });
 
 console.log('\nUnitedHealthcare (AARP Medicare Supplement)');

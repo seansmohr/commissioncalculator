@@ -339,6 +339,9 @@
           money.format(result.remainingAsEarned) + ' (' + result.remainingMonths + ' months)'
         ));
       }
+    } else if (result.paymentMethod === 'annual') {
+      bottom.appendChild(row('Advance', 'None'));
+      bottom.appendChild(row('Payment Method', 'Paid Annually'));
     } else {
       bottom.appendChild(row('Advance', 'None'));
       bottom.appendChild(row('Payment Method', 'As-Earned'));

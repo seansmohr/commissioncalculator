@@ -71,9 +71,9 @@ Total First-Year Commission = Annualized Premium × Commission Rate
 
 ### Flat-amount carriers
 
-UnitedHealthcare pays a set dollar amount per policy year instead, so premium
-does not enter the calculation at all and the premium field disappears when one
-of its products is selected:
+UnitedHealthcare and Anthem Blue Cross pay a set dollar amount per policy year
+instead, so premium does not enter the calculation at all and the premium field
+disappears when one of their products is selected:
 
 ```
 Total First-Year Commission = the schedule's year-1 amount
@@ -163,17 +163,19 @@ the asset allowlist and path-traversal handling.
 
 ## Data coverage
 
-Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life, Bankers
-Fidelity, GTL, Healthspring, Heartland, Liberty Bankers, Manhattan Life, Medico,
+Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life,
+Anthem Blue Cross (California only), Bankers Fidelity, GTL, Healthspring,
+Heartland, Liberty Bankers, Manhattan Life, Medico,
 Mutual of Omaha (Long Term Care only), Physicians Mutual, United American,
 UnitedHealthcare (AARP Medicare Supplement).
 
 Read from the full source and complete: **Aetna Senior Supplemental**,
-**Aflac**, **American Benefit Life**, **Bankers Fidelity**, **Healthspring**,
-**Heartland**, **Liberty Bankers**, **Manhattan Life**, **Medico**, **Physicians
-Mutual**, **United American**, **UnitedHealthcare**, and **Mutual of Omaha** (for
-the Long Term Care schedule, which is all that schedule contains). Only **GTL** rests on a weaker
-source — a carrier portal rates panel — and its rules are flagged accordingly.
+**Aflac**, **American Benefit Life**, **Anthem Blue Cross**, **Bankers
+Fidelity**, **Healthspring**, **Heartland**, **Liberty Bankers**, **Manhattan
+Life**, **Medico**, **Physicians Mutual**, **United American**,
+**UnitedHealthcare**, and **Mutual of Omaha** (for the Long Term Care schedule,
+which is all that schedule contains). Only **GTL** rests on a weaker source — a
+carrier portal rates panel — and its rules are flagged accordingly.
 
 **GTL** is loaded from a carrier-portal rates panel rather than a commission
 schedule. It has no state or age breakdown, so every GTL rule is flagged for
