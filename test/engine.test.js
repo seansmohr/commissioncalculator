@@ -461,12 +461,69 @@ test('Healthspring Flexible Choice HI riders are excluded where the schedule say
   close(engine.findRule('Healthspring', 'FL', 'Flexible Choice Hospital Indemnity - Lump Sum Cancer Recurrence Rider', 60).rate, 0.55, 'FL LSCR');
 });
 
-test('Healthspring California Medicare Supplement rates match the schedule', function () {
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan A', 70).rate, 0.05, 'Plan A');
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plans F & G', 70).rate, 0.15, 'F&G 65-79');
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plans F & G', 82).rate, 0.065, 'F&G 80+');
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan N', 70).rate, 0.18, 'Plan N 65-79');
-  close(engine.findRule('Healthspring', 'CA', 'Medicare Supplement - Plan N', 82).rate, 0.09, 'Plan N 80+');
+test('Healthspring Medicare Supplement matches the MCLIC AMGA-70 schedule', function () {
+  var find = function (state, product, age) {
+    return engine.findRule('Healthspring', state, 'Medicare Supplement - ' + product, age);
+  };
+  // "All states unless otherwise noted" - checked in two of the twelve.
+  ['CA', 'TX'].forEach(function (st) {
+    close(find(st, 'Plan A', 70).rate, 0.05, st + ' Plan A 65+');
+    close(find(st, 'Plans F & G', 70).rate, 0.23, st + ' F&G 65-79');
+    close(find(st, 'Plans F & G', 82).rate, 0.115, st + ' F&G 80+');
+    close(find(st, 'Plans HDF / HDG', 70).rate, 0.28, st + ' HDF/HDG 65-79');
+    close(find(st, 'Plans HDF / HDG', 82).rate, 0.165, st + ' HDF/HDG 80+');
+    close(find(st, 'Plan N', 70).rate, 0.27, st + ' Plan N 65-79');
+    close(find(st, 'Plan N', 82).rate, 0.135, st + ' Plan N 80+');
+  });
+});
+
+test('the new Healthspring schedule covers every appointed state, not just CA', function () {
+  var states = engine.getStates('Healthspring').map(function (s) { return s.code; });
+  states.forEach(function (st) {
+    assert.ok(
+      engine.getProducts('Healthspring', st).some(function (p) {
+        return p.indexOf('Medicare Supplement') === 0;
+      }),
+      st + ' should offer Healthspring Medicare Supplement'
+    );
+  });
+});
+
+test('Healthspring guaranteed issue pays 0% in years 1-6', function () {
+  ['Plan A', 'Plans F & G', 'Plans HDF / HDG', 'Plan N'].forEach(function (plan) {
+    var r = engine.calculate({
+      carrier: 'Healthspring', state: 'PA',
+      product: 'Medicare Supplement - ' + plan + ' (Guaranteed Issue)',
+      age: 70, monthlyPremium: 150
+    });
+    assert.ok(r.found, plan + ' GI should resolve');
+    close(r.rate, 0, plan + ' GI');
+  });
+});
+
+test('Healthspring under-65 pays 0% on F&G, HDF/HDG and N', function () {
+  ['Plans F & G', 'Plans HDF / HDG', 'Plan N'].forEach(function (plan) {
+    close(engine.findRule('Healthspring', 'PA', 'Medicare Supplement - ' + plan, 60).rate, 0, plan);
+  });
+});
+
+test('Healthspring Idaho is a flat 21% at every age', function () {
+  ['Plan A', 'Plans F & G', 'Plan HDF', 'Plan N'].forEach(function (plan) {
+    [55, 70, 85].forEach(function (age) {
+      close(engine.findRule('Healthspring', 'ID', 'Medicare Supplement - ' + plan, age).rate,
+        0.21, plan + ' at ' + age);
+    });
+  });
+  // Idaho's block names HDF but not HDG, so HDG keeps the all-states bands.
+  close(engine.findRule('Healthspring', 'ID', 'Medicare Supplement - Plan HDG', 70).rate, 0.28, 'ID HDG');
+  assert.ok(engine.getProducts('Healthspring', 'ID').indexOf('Medicare Supplement - Plans HDF / HDG') === -1,
+    'Idaho should not also offer the combined HDF/HDG product');
+});
+
+test('the Idaho-only and all-states Healthspring products do not bleed into each other', function () {
+  assert.ok(engine.getProducts('Healthspring', 'ID').indexOf('Medicare Supplement - Plan HDF') !== -1);
+  assert.ok(engine.getProducts('Healthspring', 'TX').indexOf('Medicare Supplement - Plan HDF') === -1);
+  assert.ok(engine.getProducts('Healthspring', 'TX').indexOf('Medicare Supplement - Plans HDF / HDG') !== -1);
 });
 
 test('Healthspring Return of Premium rider is available everywhere we write', function () {
@@ -701,10 +758,28 @@ test('GTL rules explain their source without asking for an impossible check', fu
   });
 });
 
-test('no rule anywhere is left flagged for verification', function () {
+test('every rule flagged for verification explains why', function () {
+  // A flag is only acceptable where the carrier's own schedule is ambiguous or
+  // self-contradictory, and the results card has to say so.
   var flagged = DATA.rules.filter(function (r) { return r.verify; });
-  assert.strictEqual(flagged.length, 0,
-    'flagged: ' + flagged.map(function (r) { return r.carrier + '/' + r.product; }).join(', '));
+  flagged.forEach(function (r) {
+    assert.ok(r.note && r.note.length > 40,
+      r.carrier + '/' + r.product + ' is flagged but carries no explanation');
+    assert.ok(/[Cc]onfirm|[Cc]heck|[Dd]ouble-check/.test(r.note),
+      r.carrier + '/' + r.product + ' should tell the reader to confirm it');
+  });
+});
+
+test('the only flagged rules are the two known Healthspring ambiguities', function () {
+  var flagged = DATA.rules.filter(function (r) { return r.verify; })
+    .map(function (r) { return r.carrier + '/' + r.product; });
+  flagged.forEach(function (name) {
+    assert.ok(
+      name === 'Healthspring/Medicare Supplement - Plan A' ||
+      name === 'Healthspring/Medicare Supplement - Plan HDG',
+      'unexpected flagged rule: ' + name
+    );
+  });
 });
 
 test('GTL products with no rate on the panel are not loaded', function () {
@@ -1533,8 +1608,11 @@ test('products are limited to products available in the selected state', functio
   var caProducts = engine.getProducts('Healthspring', 'CA');
   var txProducts = engine.getProducts('Healthspring', 'TX');
   assert.ok(caProducts.indexOf('Medicare Supplement - Plan N') !== -1, 'CA should offer Med Supp Plan N');
-  assert.ok(txProducts.indexOf('Medicare Supplement - Plan N') === -1, 'TX should not offer Med Supp on this schedule');
   assert.ok(txProducts.indexOf('Choice Accident') !== -1, 'TX should offer Choice Accident');
+  assert.ok(caProducts.indexOf('Choice Accident') !== -1, 'CA should offer Choice Accident');
+  // Flexible Choice Hospital Indemnity Senior is not available in California.
+  assert.ok(txProducts.indexOf('Flexible Choice Hospital Indemnity Senior') !== -1, 'TX should offer it');
+  assert.ok(caProducts.indexOf('Flexible Choice Hospital Indemnity Senior') === -1, 'CA should not');
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed\n');

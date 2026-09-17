@@ -187,6 +187,15 @@ capped at but not every carrier pays. UnitedHealthcare's own schedule pays
 $406-$510 initial on a **non-SNP PPO** against the $694-$864 the tab shows — its
 HMO, SNP and renewal amounts do match. See [`data/SOURCES.md`](data/SOURCES.md).
 
+**Healthspring Medicare Supplement** moved to the Medco Containment (MCLIC)
+AMGA-70 schedule effective 09/22/2025, replacing the Loyal American
+California-only rates. It now covers every appointed state, and the rates are
+higher — Plans F & G at 65-79 went from 15% to 23%. Healthspring's ancillary
+products are unchanged, still on the Loyal American GA-60 schedule. Two rules on
+that schedule are flagged for verification because the carrier's own document is
+self-contradictory; both show a caution note on the results card and are written
+up in [`data/SOURCES.md`](data/SOURCES.md).
+
 Remaining gaps are listed in [`data/SOURCES.md`](data/SOURCES.md).
 
 ## Adding or fixing rates

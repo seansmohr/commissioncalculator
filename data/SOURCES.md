@@ -11,7 +11,8 @@ published rates are used anywhere.
 | Anthem Blue Cross | `brk-2026CAMedSup CommSch.pdf` — **both pages** (California Medicare Supplement, effective 03/01/2026) | Broker (the schedule states one level) |
 | Aetna Senior Supplemental | `aetna senior supplemental commission schedule.pdf` (rev. 07/23/2026, BRKPRDXX2_12) — **all 9 pages** | General Agent, Level 12 |
 | Mutual of Omaha | `Mutual of Omaha Commission Schedule.pdf` (MT0044_0526, eff. 05/01/2026) — **all 16 pages** | General Agent (BMO151) |
-| Healthspring | Loyal American Life commission schedule (eff. 04/07/2025) — **all 5 pages** | GA-60 |
+| Healthspring — Medicare Supplement | `mclic-amga-sa-hs.pdf` — **both pages** (Medco Containment Life Insurance Company, eff. 09/22/2025) | AMGA-70 |
+| Healthspring — everything else | Loyal American Life commission schedule (eff. 04/07/2025) — **all 5 pages** | GA-60 |
 | Physicians Mutual | `physicians mutual commission schedules.xlsx` — **all sheets, confirmed against screenshots** | General Agent (topline street), Level 5 |
 | Manhattan Life | `manhattan life commission schedule` (JU Level 5, 2-2026) — **all 4 pages, scanned; read visually** | MGA |
 | Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (TERBRKXX01_08, eff. 05/01/2026) — **all 4 pages** | GA 8 |
@@ -366,15 +367,72 @@ way.
 "United World" (R62.005) Medicare Supplement schedules listed in its Contract
 Summary, or with UnitedHealthcare. Three different companies.
 
-### Healthspring — now complete
+### Healthspring — Medicare Supplement replaced, ancillary unchanged
 
-Confirmed against all 5 pages. The previously-flagged "Level" Dental/Vision/
-Hearing gap is resolved (15% all states, 8% CA, 5% NV), and three product
-families that were missing are now loaded: the **Flexible Choice Hospital
-Indemnity riders** (Accident, Lump Sum Heart/Stroke/Restoration, Lump Sum Cancer
-Recurrence, Specified Disease — not available in CA, ID or NJ among our states)
-and the **Return of Premium rider**. California Medicare Supplement, Whole Life
-and every other previously-loaded rate were verified unchanged.
+Healthspring now runs on **two schedules from two underwriting companies**, and
+only the Medicare Supplement half was replaced:
+
+- **Medicare Supplement** — Medco Containment Life Insurance Company (MCLIC),
+  level **AMGA-70**, effective **09/22/2025**. This superseded the Loyal
+  American California-only Medicare Supplement rates previously loaded.
+- **Everything else** — Loyal American Life, **GA-60**, effective 04/07/2025,
+  untouched.
+
+The old data covered **California only** at Loyal American's GA-60 rates. The
+new schedule covers every state, and the rates are materially higher — Plans
+F & G at ages 65-79 went from **15% to 23%**, Plan N from **18% to 27%**. Plans
+HDF/HDG were not on the old schedule at all.
+
+**Reading the table.** The columns are policy-year bands, not contract levels:
+**Yrs 1-6 / Yrs 7-10 / Yrs 11-30**, under one level heading, *AMGA - 70*. The
+text layer of the PDF extracts three stray numbers ("14 15 16") above those
+columns that do not appear on the rendered page; the page render is what the
+transcription follows. Only the years 1-6 column is loaded.
+
+**First-year rates, all states except Idaho:**
+
+| Plan group | Ages ≤ 64 | 65-79 | 80+ | Guaranteed Issue |
+|---|---|---|---|---|
+| Plan A | see below | 5% (65+) | 5% (65+) | 0% |
+| Plans F & G | 0% | **23%** | **11.5%** | 0% |
+| Plans HDF / HDG | 0% | **28%** | **16.5%** | 0% |
+| Plan N | 0% | **27%** | **13.5%** | 0% |
+
+**Idaho** gets its own block: a flat **21%** for Plan A, Plans F & G, Plan HDF
+and Plan N at **all issue ages and all enrollment types**, guaranteed issue
+included. The schedule's other named states — Maine, Oregon, Vermont,
+Washington — are outside our licensing and are not transcribed.
+
+**Guaranteed issue is a separate product.** Each plan group's first row reads
+"Issue Ages ≤ 64 (...) + Guaranteed Issue Business" at 0%, listing two
+categories that share the rate. Page 1 of the schedule confirms the second:
+"All Medicare Supplement policies, based on guaranteed issue requirements of the
+Balanced Budget Act, will receive 0% in years 1-6". Nothing else in the
+calculator can identify guaranteed-issue business, so it is carried in the
+product name, the same approach used for Anthem's enrollment types.
+
+That the "+" lists two categories rather than intersecting them is settled by
+the Oregon block, which reads "All Issue Ages (...) + Guaranteed Issue Business"
+— an intersection reading would leave Oregon with no rate for ordinary
+business at all.
+
+#### Two things the schedule does not settle
+
+Both are loaded at the reading that fits the rest of the document, **flagged for
+verification**, and shown with a caution note on the results card.
+
+1. **Plan A under age 65 contradicts itself.** One row pays **0%** for issue ages
+   64 and under; a second row immediately below pays **5%** for the same ages.
+   Loaded at 0%, which is what every other plan group on this schedule pays
+   under 65. The 5% row repeats the 65+ figures (5% / 5% / 2%) exactly, which is
+   what a stale duplicated row looks like. Worth confirming with Healthspring.
+
+2. **Idaho names Plan HDF but not Plan HDG.** The all-states block covers
+   "Plans HDF/HDG" together; Idaho's block covers "Plans HDF" alone. Read
+   literally, Idaho's HDG falls back to the all-states 28% / 16.5% bands rather
+   than Idaho's flat 21%. Idaho therefore lists HDF and HDG as separate products
+   so the two cannot be confused. Worth confirming whether Idaho's 21% was meant
+   to cover both.
 
 ### Physicians Mutual — verified
 

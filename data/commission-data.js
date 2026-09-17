@@ -448,39 +448,146 @@
   }());
 
   // ===========================================================================
-  // HEALTHSPRING (Loyal American Life) - GA-60 - 12 month advance
+  // HEALTHSPRING - 12 month advance
+  //
+  // Two schedules, from two underwriting companies at two contract levels:
+  //
+  //   Medicare Supplement - Medco Containment Life Insurance Company (MCLIC),
+  //     level AMGA-70, effective 09/22/2025. This replaced the Loyal American
+  //     California-only Medicare Supplement rates previously loaded here.
+  //   Everything else - Loyal American Life, GA-60, effective 04/07/2025.
+  //
+  // The MCLIC schedule gives three columns per row - years 1-6, 7-10 and 11-30.
+  // Only the first-year (years 1-6) column is loaded, as everywhere else in this
+  // file.
   // ===========================================================================
+  // Every appointed state except Idaho, which the MCLIC schedule calls out.
+  var HS_GENERAL = ['AZ', 'CA', 'FL', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'];
+  var HS_ID_NOTE = 'Idaho pays one rate for all issue ages and all enrollment types, guaranteed issue included.';
+  var HS_ID_HDG = 'Idaho has its own block for Plan HDF but does not name Plan HDG, so this falls back to the all-states HDF/HDG rate. Confirm with Healthspring whether Idaho\u2019s 21% also covers HDG.';
+
   add([
-    // --- Medicare Supplement (California is our only appointed state on this schedule)
+    // --- Medicare Supplement (MCLIC, level AMGA-70, eff. 09/22/2025) ---------
+    //
+    // "All states unless otherwise noted below" covers every appointed state
+    // except Idaho, which the schedule gives its own block. The schedule's other
+    // named states - Maine, Oregon, Vermont, Washington - are outside our
+    // licensing and are not transcribed.
+    //
+    // Each plan group's first row reads "Issue Ages <= 64 (...) + Guaranteed
+    // Issue Business" at 0%, listing two categories that share the rate. Page 1
+    // of the schedule agrees for the second of them: "All Medicare Supplement
+    // policies, based on guaranteed issue requirements of the Balanced Budget
+    // Act, will receive 0% in years 1-6". Guaranteed issue is carried in the
+    // product name because nothing else in the calculator can identify it.
     {
-      carrier: 'Healthspring', states: ['CA'], category: 'medicare_supplement',
-      product: 'Medicare Supplement - Plan A', rate: 0.05
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan A', minAge: 65, rate: 0.05
     },
     {
-      carrier: 'Healthspring', states: ['CA'], category: 'medicare_supplement',
-      product: 'Medicare Supplement - Plans F & G', minAge: 65, maxAge: 79, rate: 0.15
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan A', maxAge: 64, rate: 0, verify: true,
+      note: 'The schedule contradicts itself on Plan A under age 65: one row pays 0% for issue ages 64 and under, a second row pays 5% for the same ages. The 0% row matches every other plan on this schedule; the 5% row repeats the 65+ figures exactly. Confirm with Healthspring before quoting.'
     },
     {
-      carrier: 'Healthspring', states: ['CA'], category: 'medicare_supplement',
-      product: 'Medicare Supplement - Plans F & G', minAge: 80, rate: 0.065
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan A (Guaranteed Issue)', rate: 0,
+      note: 'Guaranteed issue business pays 0% in years 1-6.'
+    },
+
+    {
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans F & G', minAge: 65, maxAge: 79, rate: 0.23
     },
     {
-      carrier: 'Healthspring', states: ['CA'], category: 'medicare_supplement',
-      product: 'Medicare Supplement - Plans F & G', maxAge: 64, rate: 0.05,
-      note: 'California issue age 64 rate (Plan F).'
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans F & G', minAge: 80, rate: 0.115
     },
     {
-      carrier: 'Healthspring', states: ['CA'], category: 'medicare_supplement',
-      product: 'Medicare Supplement - Plan N', minAge: 65, maxAge: 79, rate: 0.18
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans F & G', maxAge: 64, rate: 0,
+      note: 'Issue ages 64 and under pay 0% in years 1-6.'
     },
     {
-      carrier: 'Healthspring', states: ['CA'], category: 'medicare_supplement',
-      product: 'Medicare Supplement - Plan N', minAge: 80, rate: 0.09
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans F & G (Guaranteed Issue)', rate: 0,
+      note: 'Guaranteed issue business pays 0% in years 1-6.'
+    },
+
+    {
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans HDF / HDG', minAge: 65, maxAge: 79, rate: 0.28
     },
     {
-      carrier: 'Healthspring', states: ['CA'], category: 'medicare_supplement',
-      product: 'Medicare Supplement - Plan N', maxAge: 64, rate: 0.05,
-      note: 'California issue age 64 rate.'
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans HDF / HDG', minAge: 80, rate: 0.165
+    },
+    {
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans HDF / HDG', maxAge: 64, rate: 0,
+      note: 'Issue ages 64 and under pay 0% in years 1-6.'
+    },
+    {
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans HDF / HDG (Guaranteed Issue)', rate: 0,
+      note: 'Guaranteed issue business pays 0% in years 1-6.'
+    },
+
+    {
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan N', minAge: 65, maxAge: 79, rate: 0.27
+    },
+    {
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan N', minAge: 80, rate: 0.135
+    },
+    {
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan N', maxAge: 64, rate: 0,
+      note: 'Issue ages 64 and under pay 0% in years 1-6.'
+    },
+    {
+      carrier: 'Healthspring', states: HS_GENERAL, category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan N (Guaranteed Issue)', rate: 0,
+      note: 'Guaranteed issue business pays 0% in years 1-6.'
+    },
+
+    // Idaho is a flat 21% for all issue ages and all enrollment types, so it
+    // needs no age bands and no separate guaranteed-issue product. The schedule
+    // names Plan HDF for Idaho but not Plan HDG, so Idaho's HDG falls back to
+    // the "all states" HDF/HDG rates above and is listed as its own product to
+    // keep the two apart.
+    {
+      carrier: 'Healthspring', states: ['ID'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan A', rate: 0.21, note: HS_ID_NOTE
+    },
+    {
+      carrier: 'Healthspring', states: ['ID'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans F & G', rate: 0.21, note: HS_ID_NOTE
+    },
+    {
+      carrier: 'Healthspring', states: ['ID'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan HDF', rate: 0.21,
+      note: HS_ID_NOTE + ' The schedule names only Plan HDF for Idaho, not Plan HDG.'
+    },
+    {
+      carrier: 'Healthspring', states: ['ID'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan N', rate: 0.21, note: HS_ID_NOTE
+    },
+    {
+      carrier: 'Healthspring', states: ['ID'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan HDG', minAge: 65, maxAge: 79, rate: 0.28,
+      verify: true, note: HS_ID_HDG
+    },
+    {
+      carrier: 'Healthspring', states: ['ID'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan HDG', minAge: 80, rate: 0.165,
+      verify: true, note: HS_ID_HDG
+    },
+    {
+      carrier: 'Healthspring', states: ['ID'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plan HDG', maxAge: 64, rate: 0,
+      verify: true, note: HS_ID_HDG
     },
 
     // --- Ancillary -----------------------------------------------------------
