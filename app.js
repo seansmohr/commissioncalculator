@@ -352,7 +352,9 @@
     if (result.paymentMethod === 'advance-unknown') {
       card.appendChild(noteEl(
         'We do not have this carrier\u2019s advance term on file, so the upfront amount cannot be calculated. ' +
-        'The rate and total first-year commission above are correct.',
+        (result.pricing === 'flat'
+          ? 'The first-year commission above is correct.'
+          : 'The rate and total first-year commission above are correct.'),
         'warn'
       ));
     }

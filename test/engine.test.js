@@ -1037,7 +1037,7 @@ test('calculate() still delegates to the MAPD path when handed the MAPD carrier'
 test('MAPD is not a carrier and stays out of the carrier list', function () {
   var carriers = engine.getCarriers();
   assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
-  assert.strictEqual(carriers.length, 15, 'the carrier list is the fifteen real carriers');
+  assert.strictEqual(carriers.length, 16, 'the carrier list is the sixteen real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
   assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
@@ -1164,6 +1164,70 @@ test('existing percentage-of-premium carriers are untouched by MAPD', function (
   close(r.rate, 0.25, 'rate');
   close(r.upfrontCommission, 300, 'upfront');
   assert.strictEqual(r.advanceMonths, 12);
+});
+
+console.log('\nBlue Shield of California');
+
+function bscal(age) {
+  return engine.calculate({
+    carrier: 'Blue Shield of California', state: 'CA',
+    product: 'Medicare Supplement - Plans F, G, N', age: age
+  });
+}
+
+test('Blue Shield of California is California only, Medicare Supplement only', function () {
+  assert.ok(engine.getCarriers().indexOf('Blue Shield of California') !== -1);
+  assert.deepStrictEqual(
+    engine.getStates('Blue Shield of California').map(function (s) { return s.code; }),
+    ['CA']
+  );
+  var rules = DATA.rules.filter(function (r) { return r.carrier === 'Blue Shield of California'; });
+  assert.ok(rules.length > 0);
+  rules.forEach(function (r) {
+    assert.deepStrictEqual(r.states, ['CA']);
+    assert.strictEqual(r.category, 'medicare_supplement');
+  });
+});
+
+test('Plans F, G and N pay a flat $480 at any age 65 or older', function () {
+  [65, 70, 79, 80, 99].forEach(function (age) {
+    var r = bscal(age);
+    assert.ok(r.found, 'age ' + age + ' should resolve');
+    assert.strictEqual(r.pricing, 'flat');
+    close(r.totalFirstYearCommission, 480, 'age ' + age);
+  });
+});
+
+test('premium is irrelevant to a Blue Shield answer', function () {
+  var cheap = engine.calculate({
+    carrier: 'Blue Shield of California', state: 'CA',
+    product: 'Medicare Supplement - Plans F, G, N', age: 70, monthlyPremium: 20
+  });
+  var dear = engine.calculate({
+    carrier: 'Blue Shield of California', state: 'CA',
+    product: 'Medicare Supplement - Plans F, G, N', age: 70, monthlyPremium: 800
+  });
+  close(cheap.totalFirstYearCommission, dear.totalFirstYearCommission, 'premium must not matter');
+  assert.strictEqual(cheap.rate, undefined);
+  assert.strictEqual(cheap.monthlyPremium, undefined);
+});
+
+test('nothing is claimed for beneficiaries under 65', function () {
+  [0, 50, 64].forEach(function (age) {
+    var r = bscal(age);
+    assert.strictEqual(r.found, false, 'age ' + age + ' should not resolve');
+    assert.strictEqual(r.message, engine.NOT_FOUND);
+  });
+});
+
+test('the advance term is reported as unknown, not guessed', function () {
+  var r = bscal(70);
+  assert.strictEqual(engine.getAdvanceMonths('Blue Shield of California', 'medicare_supplement'), null);
+  assert.strictEqual(r.advanceMonths, null);
+  assert.strictEqual(r.paymentMethod, 'advance-unknown');
+  assert.strictEqual(r.upfrontCommission, undefined, 'no upfront figure may be invented');
+  assert.strictEqual(r.monthlyCommission, undefined);
+  close(r.totalFirstYearCommission, 480, 'the first-year figure is still correct');
 });
 
 console.log('\nAnthem Blue Cross');

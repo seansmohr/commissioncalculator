@@ -101,6 +101,10 @@
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary"'
     },
+    'Blue Shield of California': {
+      default: null,
+      source: 'Not on file. The agency supplied the commission amount but not the advance term, so the calculator reports the first-year commission and says the upfront figure is unknown rather than inventing one.'
+    },
     'Anthem Blue Cross': {
       default: 9,
       source: 'California Medicare Supplement schedule: "Anthem Blue Cross (Company) will advance commissions for 9 months for new Medicare Supplement members in a lump sum payment based on the initial month\u2019s commission calculation." The pre-65 administrative fee is not advanced.'
@@ -2016,6 +2020,28 @@
       }
     ]);
   }());
+
+
+  // ===========================================================================
+  // BLUE SHIELD OF CALIFORNIA  (California only) - advance term not on file
+  //
+  // Supplied by the agency rather than read from a carrier schedule PDF: Plans
+  // F, G and N pay a flat $480 first-year commission for any beneficiary aged
+  // 65 or older. Like UnitedHealthcare and Anthem, this is a set dollar amount
+  // rather than a percentage of premium.
+  //
+  // Nothing is on file for beneficiaries under 65, so the calculator returns
+  // "not found" there rather than assuming the 65+ amount carries over. Nothing
+  // is on file for renewal years or for any plan other than F, G and N either.
+  // ===========================================================================
+  add([
+    {
+      carrier: 'Blue Shield of California', states: ['CA'], category: 'medicare_supplement',
+      product: 'Medicare Supplement - Plans F, G, N',
+      minAge: 65, flatAmount: 480.00,
+      note: 'Flat first-year commission, not a percentage of premium. Applies to any beneficiary aged 65 or older. Supplied by the agency; no carrier schedule document is on file.'
+    }
+  ]);
 
   // ---------------------------------------------------------------------------
   // Carriers with no usable rate data yet (kept out of the dropdown, listed in

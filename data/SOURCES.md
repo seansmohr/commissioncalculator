@@ -8,6 +8,7 @@ published rates are used anywhere.
 
 | Carrier | Schedule read | Our contract level |
 |---|---|---|
+| Blue Shield of California | **No document on file** — rate supplied directly by the agency | not stated |
 | Anthem Blue Cross | `brk-2026CAMedSup CommSch.pdf` — **both pages** (California Medicare Supplement, effective 03/01/2026) | Broker (the schedule states one level) |
 | Aetna Senior Supplemental | `aetna senior supplemental commission schedule.pdf` (rev. 07/23/2026, BRKPRDXX2_12) — **all 9 pages** | General Agent, Level 12 |
 | Mutual of Omaha | `Mutual of Omaha Commission Schedule.pdf` (MT0044_0526, eff. 05/01/2026) — **all 16 pages** | General Agent (BMO151) |
@@ -170,6 +171,30 @@ column structure that flat text extraction destroys. Scanned pages with no text
 layer are read visually from page renders. This is how the Aetna, Mutual of
 Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
 right way to add the remaining carriers.
+
+### Blue Shield of California — supplied by the agency, not read from a schedule
+
+The only carrier in this file whose rate did not come from a commission schedule
+document. The agency supplied it directly: **Plans F, G and N pay a flat $480
+first-year commission for any beneficiary aged 65 or older**, in California.
+It is a set dollar amount rather than a percentage of premium, like
+UnitedHealthcare and Anthem.
+
+What is **not** on file, and therefore not in the calculator:
+
+- **The advance term.** Every other carrier's advance is either in the
+  spreadsheet or stated on its schedule. This one is not, so the rule leaves it
+  unknown: the results card reports the $480 and says plainly that the upfront
+  figure cannot be calculated, rather than borrowing another carrier's 9 or 12
+  months. One sentence from the agency closes this.
+- **Beneficiaries under 65.** The rate was given as applying to age 65 and
+  older, so under 65 returns "not found" rather than assuming the same $480.
+- **Renewal years**, which are not modeled for any carrier.
+- **Any plan other than F, G and N.** If Blue Shield pays on Plan A, K, L, N
+  Select or a high-deductible plan, those are missing.
+
+Getting the actual Blue Shield commission schedule would settle all four at once
+and let this entry be verified the way every other carrier's was.
 
 ### Anthem Blue Cross — California only, flat dollar amounts
 

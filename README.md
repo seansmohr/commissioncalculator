@@ -71,9 +71,9 @@ Total First-Year Commission = Annualized Premium × Commission Rate
 
 ### Flat-amount carriers
 
-UnitedHealthcare and Anthem Blue Cross pay a set dollar amount per policy year
-instead, so premium does not enter the calculation at all and the premium field
-disappears when one of their products is selected:
+UnitedHealthcare, Anthem Blue Cross and Blue Shield of California pay a set
+dollar amount per policy year instead, so premium does not enter the calculation
+at all and the premium field disappears when one of their products is selected:
 
 ```
 Total First-Year Commission = the schedule's year-1 amount
@@ -164,7 +164,8 @@ the asset allowlist and path-traversal handling.
 ## Data coverage
 
 Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life,
-Anthem Blue Cross (California only), Bankers Fidelity, GTL, Healthspring,
+Anthem Blue Cross (California only), Bankers Fidelity, Blue Shield of California
+(California only), GTL, Healthspring,
 Heartland, Liberty Bankers, Manhattan Life, Medico,
 Mutual of Omaha (Long Term Care only), Physicians Mutual, United American,
 UnitedHealthcare (AARP Medicare Supplement).
@@ -186,6 +187,11 @@ verification and shows a caution note on the results card. See
 capped at but not every carrier pays. UnitedHealthcare's own schedule pays
 $406-$510 initial on a **non-SNP PPO** against the $694-$864 the tab shows — its
 HMO, SNP and renewal amounts do match. See [`data/SOURCES.md`](data/SOURCES.md).
+
+**Blue Shield of California** is the one carrier whose rate did not come from a
+commission schedule — the agency supplied it directly. Its advance term is not
+on file, so the calculator reports the first-year commission and says the
+upfront figure is unknown rather than guessing.
 
 **Healthspring Medicare Supplement** moved to the Medco Containment (MCLIC)
 AMGA-70 schedule effective 09/22/2025, replacing the Loyal American
