@@ -375,7 +375,11 @@
       result.annualizedPremium = monthlyPremium * 12;
     }
 
-    if (advanceMonths === null) {
+    if (rule.noAdvanceTerm) {
+      // No advance arrangement on file for this carrier, and none claimed. The
+      // first-year commission is the whole answer, so the card shows just that.
+      result.paymentMethod = 'none';
+    } else if (advanceMonths === null) {
       // Rate is known, advance term is not. Report the commission and say so
       // rather than inventing an upfront figure.
       result.paymentMethod = 'advance-unknown';

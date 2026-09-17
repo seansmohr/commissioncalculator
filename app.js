@@ -328,7 +328,10 @@
     var bottom = document.createElement('div');
     bottom.className = 'result-group';
 
-    if (result.paymentMethod === 'advance-unknown') {
+    if (result.paymentMethod === 'none') {
+      // Nothing to add: the first-year commission above is the whole answer.
+      bottom = null;
+    } else if (result.paymentMethod === 'advance-unknown') {
       bottom.appendChild(row('Advance', 'Not on file'));
     } else if (result.paymentMethod === 'advance') {
       bottom.appendChild(row('Advance', result.advanceMonths + ' Months'));
@@ -347,7 +350,7 @@
       bottom.appendChild(row('Payment Method', 'As-Earned'));
       bottom.appendChild(row('Expected Monthly Commission', money.format(result.monthlyCommission), { strong: true }));
     }
-    card.appendChild(bottom);
+    if (bottom) { card.appendChild(bottom); }
 
     if (result.paymentMethod === 'advance-unknown') {
       card.appendChild(noteEl(

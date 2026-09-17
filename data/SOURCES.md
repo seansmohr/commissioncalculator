@@ -180,21 +180,22 @@ first-year commission for any beneficiary aged 65 or older**, in California.
 It is a set dollar amount rather than a percentage of premium, like
 UnitedHealthcare and Anthem.
 
+**There is no advance**, confirmed with the agency. The rule carries
+`noAdvanceTerm`, which drops the advance section from the results card
+altogether rather than printing "Advance: None" or dividing $480 into a monthly
+figure. The card shows the $480 and nothing else. This is the only carrier that
+suppresses that section, and a test keeps it that way.
+
 What is **not** on file, and therefore not in the calculator:
 
-- **The advance term.** Every other carrier's advance is either in the
-  spreadsheet or stated on its schedule. This one is not, so the rule leaves it
-  unknown: the results card reports the $480 and says plainly that the upfront
-  figure cannot be calculated, rather than borrowing another carrier's 9 or 12
-  months. One sentence from the agency closes this.
 - **Beneficiaries under 65.** The rate was given as applying to age 65 and
   older, so under 65 returns "not found" rather than assuming the same $480.
 - **Renewal years**, which are not modeled for any carrier.
 - **Any plan other than F, G and N.** If Blue Shield pays on Plan A, K, L, N
   Select or a high-deductible plan, those are missing.
 
-Getting the actual Blue Shield commission schedule would settle all four at once
-and let this entry be verified the way every other carrier's was.
+Getting the actual Blue Shield commission schedule would settle all three at
+once and let this entry be verified the way every other carrier's was.
 
 ### Anthem Blue Cross — California only, flat dollar amounts
 

@@ -189,9 +189,9 @@ $406-$510 initial on a **non-SNP PPO** against the $694-$864 the tab shows — i
 HMO, SNP and renewal amounts do match. See [`data/SOURCES.md`](data/SOURCES.md).
 
 **Blue Shield of California** is the one carrier whose rate did not come from a
-commission schedule — the agency supplied it directly. Its advance term is not
-on file, so the calculator reports the first-year commission and says the
-upfront figure is unknown rather than guessing.
+commission schedule — the agency supplied it directly. There is no advance, so
+its results card shows the flat first-year commission on its own with no advance
+section at all.
 
 **Healthspring Medicare Supplement** moved to the Medco Containment (MCLIC)
 AMGA-70 schedule effective 09/22/2025, replacing the Loyal American

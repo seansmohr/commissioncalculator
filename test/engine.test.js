@@ -1220,14 +1220,29 @@ test('nothing is claimed for beneficiaries under 65', function () {
   });
 });
 
-test('the advance term is reported as unknown, not guessed', function () {
+test('the $480 stands alone - no advance, and nothing invented around it', function () {
   var r = bscal(70);
-  assert.strictEqual(engine.getAdvanceMonths('Blue Shield of California', 'medicare_supplement'), null);
-  assert.strictEqual(r.advanceMonths, null);
-  assert.strictEqual(r.paymentMethod, 'advance-unknown');
-  assert.strictEqual(r.upfrontCommission, undefined, 'no upfront figure may be invented');
-  assert.strictEqual(r.monthlyCommission, undefined);
-  close(r.totalFirstYearCommission, 480, 'the first-year figure is still correct');
+  assert.strictEqual(r.paymentMethod, 'none');
+  close(r.totalFirstYearCommission, 480, 'the first-year figure is the whole answer');
+  assert.strictEqual(r.upfrontCommission, undefined, 'no upfront figure');
+  assert.strictEqual(r.remainingAsEarned, undefined, 'no remaining figure');
+  assert.strictEqual(r.monthlyCommission, undefined, 'no monthly figure');
+  assert.strictEqual(r.advanceSource, null, 'no advance note on the card');
+});
+
+test('no other carrier suppresses its advance section', function () {
+  var suppressed = DATA.rules.filter(function (r) { return r.noAdvanceTerm; });
+  suppressed.forEach(function (r) {
+    assert.strictEqual(r.carrier, 'Blue Shield of California', 'unexpected: ' + r.carrier);
+  });
+  // A carrier that genuinely pays as-earned still shows its monthly figure.
+  var ua = engine.calculate({
+    carrier: 'United American', state: 'PA',
+    product: 'Medicare Supplement A, B, C, D, F, G, MC48 - Age 65+',
+    age: 70, monthlyPremium: 100
+  });
+  assert.strictEqual(ua.paymentMethod, 'as-earned');
+  close(ua.monthlyCommission, 13, 'as-earned carriers keep their monthly figure');
 });
 
 console.log('\nAnthem Blue Cross');

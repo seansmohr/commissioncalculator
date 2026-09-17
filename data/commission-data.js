@@ -103,7 +103,7 @@
     },
     'Blue Shield of California': {
       default: null,
-      source: 'Not on file. The agency supplied the commission amount but not the advance term, so the calculator reports the first-year commission and says the upfront figure is unknown rather than inventing one.'
+      source: null
     },
     'Anthem Blue Cross': {
       default: 9,
@@ -2023,12 +2023,16 @@
 
 
   // ===========================================================================
-  // BLUE SHIELD OF CALIFORNIA  (California only) - advance term not on file
+  // BLUE SHIELD OF CALIFORNIA  (California only) - no advance
   //
   // Supplied by the agency rather than read from a carrier schedule PDF: Plans
   // F, G and N pay a flat $480 first-year commission for any beneficiary aged
   // 65 or older. Like UnitedHealthcare and Anthem, this is a set dollar amount
   // rather than a percentage of premium.
+  //
+  // There is no advance arrangement on file and none is claimed, so `noAdvanceTerm`
+  // keeps the advance section off the results card entirely - the $480 is the
+  // whole answer.
   //
   // Nothing is on file for beneficiaries under 65, so the calculator returns
   // "not found" there rather than assuming the 65+ amount carries over. Nothing
@@ -2038,8 +2042,8 @@
     {
       carrier: 'Blue Shield of California', states: ['CA'], category: 'medicare_supplement',
       product: 'Medicare Supplement - Plans F, G, N',
-      minAge: 65, flatAmount: 480.00,
-      note: 'Flat first-year commission, not a percentage of premium. Applies to any beneficiary aged 65 or older. Supplied by the agency; no carrier schedule document is on file.'
+      minAge: 65, flatAmount: 480.00, noAdvanceTerm: true,
+      note: 'Flat first-year commission, not a percentage of premium. Applies to any beneficiary aged 65 or older.'
     }
   ]);
 
