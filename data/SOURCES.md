@@ -21,6 +21,7 @@ published rates are used anywhere.
 | Liberty Bankers | `Liberty Bankers Commission Schedules` — **all 5 pages** (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) — **all 12 pages** | MGA Level 4 |
 | Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) — **all 5 pages** | General Agent |
+| Everest | `MGA2_Heaped.pdf` (Cancer, Heart Attack & Stroke) and `MGA2_Heaped_1.pdf` (Hospital Indemnity), both rev. 08/15/2026 | MGA2, heaped |
 | GTL | "GTL Commission Rates" panel from the carrier portal (screenshot) | not stated on the panel |
 | Heartland | `heartland commission schedules` — **all 10 pages** (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Secure Advantage Flex form 93017; Short-Term Home Health Care rev. 10/23) | GA1 |
 | United American | `United American Commission Schedules.pdf` — **all 7 pages** (Med Supp 1H96 rev. 03-01-22; Other Health 1H97 eff. 01-01-2018; Life & Annuity 1L98 eff. 01-01-2018) | Level 01, Non-Lead Contract |
@@ -171,6 +172,51 @@ column structure that flat text extraction destroys. Scanned pages with no text
 layer are read visually from page renders. This is how the Aetna, Mutual of
 Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
 right way to add the remaining carriers.
+
+### Everest — two ancillary schedules, ten of our thirteen states
+
+Two one-page schedules, both at the **MGA2 commission level, heaped**, both
+revised **08/15/2026**: the **Hospital Indemnity Plan** and **Cancer, Heart
+Attack & Stroke**. Read with coordinate extraction and confirmed against a page
+render — the carrier's name appears only in a logo image, so the text layer
+alone never says "Everest".
+
+Each schedule gives **Year 1** and **Years 2+** across four state groups and two
+issue-age bands. Only Year 1 is loaded. Years 2+ is a flat **6.25%** on Hospital
+Indemnity and **3.25%** on Cancer/Heart Attack & Stroke, recorded in the rule
+note rather than modeled.
+
+**Year 1 rates, reduced to the states we are appointed in:**
+
+| Everest state group | Our states | Hospital Indemnity 0-80 / 81-85 | Cancer, HA & Stroke 0-80 / 81-90 |
+|---|---|---|---|
+| AK, AL, AR, **AZ**, CT, DE, GA, HI, IA, **ID**, **IL**, **LA**, MD, ME, MO, MS, MT, **NC**, NE, NH, **NV**, OK, OR, RI, **TX**, VT, WI, WV, WY | AZ, ID, IL, LA, NC, NV, TX | **76%** / 64% | **100%** / 88% |
+| CO, DC, **FL**, IN, KY, MI, ND, **OH**, SC, TN | FL, OH | **56%** / 44% | **80%** / 68% |
+| SD, WA | — | 36% / 24% | 60% / 48% |
+| MA, MN, **NJ** | NJ | **16%** / 16% | **40%** / 28% |
+
+New Jersey pays the same rate in both age bands on Hospital Indemnity; every
+other group steps down at 81.
+
+**California, Pennsylvania and Virginia are on no group, on either schedule.**
+Everest therefore offers nothing in those three states and the calculator says
+so. This is not a transcription gap: both schedules omit the same seven states
+throughout — CA, KS, NM, NY, PA, UT, VA — which reads as the set where the
+product is not filed. Worth confirming with Everest if we expect to write there.
+
+**The two schedules band age differently.** Hospital Indemnity runs to **85**,
+Cancer/Heart Attack & Stroke to **90**. Above those ages neither schedule
+carries a rate, so the calculator returns "not found" rather than extending the
+top band.
+
+**Advance: not on file.** Neither schedule states a term. They do refer to
+"chargebacks on unearned advanced premiums", so an advance exists — we just do
+not know its length. The results card reports the first-year commission and says
+the upfront figure cannot be calculated. One sentence from the agency closes it.
+
+Also carried as notes rather than math: the policy/application fee is not
+commissionable, commission is not payable on an approved premium increase, and
+a rescinded policy is charged back 100%.
 
 ### Blue Shield of California — supplied by the agency, not read from a schedule
 

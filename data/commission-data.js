@@ -101,6 +101,10 @@
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary"'
     },
+    'Everest': {
+      default: null,
+      source: 'Not on file. The MGA2 schedules refer to "chargebacks on unearned advanced premiums", so an advance exists, but neither schedule states its term.'
+    },
     'Blue Shield of California': {
       default: null,
       source: null
@@ -2046,6 +2050,72 @@
       note: 'Flat first-year commission, not a percentage of premium. Applies to any beneficiary aged 65 or older.'
     }
   ]);
+
+
+  // ===========================================================================
+  // EVEREST  (MGA2 Commission Level, HEAPED) - advance term not on file
+  //
+  // Two schedules, both revised 08/15/2026:
+  //   Hospital Indemnity Plan
+  //   Cancer, Heart Attack & Stroke
+  //
+  // Each gives Year 1 and Years 2+ by state group and issue age. Only Year 1 is
+  // loaded, as everywhere else in this file. Years 2+ is a flat 6.25% on
+  // Hospital Indemnity and 3.25% on Cancer/Heart Attack & Stroke.
+  //
+  // Everest groups the states four ways. Three of our appointed states - CA, PA
+  // and VA - appear in NO group on either schedule, so Everest is not offered
+  // there and the calculator returns "not found". The schedules omit the same
+  // seven states throughout (CA, KS, NM, NY, PA, UT, VA), which reads as the
+  // set where the product is not filed.
+  //
+  // The two schedules band age differently: Hospital Indemnity stops at 85,
+  // Cancer/Heart Attack & Stroke at 90. Above those ages there is no rate.
+  // ===========================================================================
+  (function everest() {
+    var EV = 'Everest';
+
+    // Everest's four state groups, reduced to the states we are appointed in.
+    // Group 3 (SD, WA) contains none of ours and is therefore absent.
+    var G1 = ['AZ', 'ID', 'IL', 'LA', 'NC', 'NV', 'TX'];
+    var G2 = ['FL', 'OH'];
+    var G4 = ['NJ'];
+
+    var HI_NOTE = 'MGA2 heaped level, year 1. Renewal years 2+ pay 6.25%. Policy and application fees are not commissionable, and commission is not payable on an approved premium increase.';
+    var CHAS_NOTE = 'MGA2 heaped level, year 1. Renewal years 2+ pay 3.25%. Policy and application fees are not commissionable, and commission is not payable on an approved premium increase.';
+
+    // [product, note, maxIssueAge, [[states, rate 0-80, rate upper band], ...]]
+    [
+      ['Hospital Indemnity', HI_NOTE, 85, [
+        [G1, 0.76, 0.64],
+        [G2, 0.56, 0.44],
+        [G4, 0.16, 0.16]
+      ]],
+      ['Cancer, Heart Attack & Stroke', CHAS_NOTE, 90, [
+        [G1, 1.00, 0.88],
+        [G2, 0.80, 0.68],
+        [G4, 0.40, 0.28]
+      ]]
+    ].forEach(function (schedule) {
+      var product = schedule[0];
+      var note = schedule[1];
+      var maxAge = schedule[2];
+
+      schedule[3].forEach(function (band) {
+        add([
+          {
+            carrier: EV, states: band[0], category: 'ancillary',
+            product: product, minAge: 0, maxAge: 80, rate: band[1], note: note
+          },
+          {
+            carrier: EV, states: band[0], category: 'ancillary',
+            product: product, minAge: 81, maxAge: maxAge, rate: band[2],
+            note: note + ' Issue ages ' + 81 + '-' + maxAge + ' band; the schedule carries no rate above age ' + maxAge + '.'
+          }
+        ]);
+      });
+    });
+  }());
 
   // ---------------------------------------------------------------------------
   // Carriers with no usable rate data yet (kept out of the dropdown, listed in

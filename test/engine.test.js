@@ -1037,7 +1037,7 @@ test('calculate() still delegates to the MAPD path when handed the MAPD carrier'
 test('MAPD is not a carrier and stays out of the carrier list', function () {
   var carriers = engine.getCarriers();
   assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
-  assert.strictEqual(carriers.length, 16, 'the carrier list is the sixteen real carriers');
+  assert.strictEqual(carriers.length, 17, 'the carrier list is the seventeen real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
   assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
@@ -1164,6 +1164,78 @@ test('existing percentage-of-premium carriers are untouched by MAPD', function (
   close(r.rate, 0.25, 'rate');
   close(r.upfrontCommission, 300, 'upfront');
   assert.strictEqual(r.advanceMonths, 12);
+});
+
+console.log('\nEverest');
+
+function everest(state, product, age) {
+  return engine.calculate({
+    carrier: 'Everest', state: state, product: product, age: age, monthlyPremium: 100
+  });
+}
+
+test('Everest covers ten of our thirteen states', function () {
+  assert.ok(engine.getCarriers().indexOf('Everest') !== -1);
+  var states = engine.getStates('Everest').map(function (s) { return s.code; }).sort();
+  assert.deepStrictEqual(states, ['AZ', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'TX']);
+});
+
+test('California, Pennsylvania and Virginia are on no Everest state group', function () {
+  ['CA', 'PA', 'VA'].forEach(function (st) {
+    assert.deepStrictEqual(engine.getProducts('Everest', st), [], st + ' should offer nothing');
+    assert.strictEqual(everest(st, 'Hospital Indemnity', 70).message, engine.NOT_FOUND);
+  });
+});
+
+test('Hospital Indemnity year 1 follows Everest’s state groups', function () {
+  // Group 1
+  ['AZ', 'ID', 'IL', 'LA', 'NC', 'NV', 'TX'].forEach(function (st) {
+    close(everest(st, 'Hospital Indemnity', 70).rate, 0.76, st + ' 0-80');
+    close(everest(st, 'Hospital Indemnity', 83).rate, 0.64, st + ' 81-85');
+  });
+  // Group 2
+  ['FL', 'OH'].forEach(function (st) {
+    close(everest(st, 'Hospital Indemnity', 70).rate, 0.56, st + ' 0-80');
+    close(everest(st, 'Hospital Indemnity', 83).rate, 0.44, st + ' 81-85');
+  });
+  // Group 4 pays the same in both bands.
+  close(everest('NJ', 'Hospital Indemnity', 70).rate, 0.16, 'NJ 0-80');
+  close(everest('NJ', 'Hospital Indemnity', 83).rate, 0.16, 'NJ 81-85');
+});
+
+test('Cancer, Heart Attack & Stroke year 1 follows the same groups at its own rates', function () {
+  ['AZ', 'ID', 'IL', 'LA', 'NC', 'NV', 'TX'].forEach(function (st) {
+    close(everest(st, 'Cancer, Heart Attack & Stroke', 70).rate, 1.00, st + ' 0-80');
+    close(everest(st, 'Cancer, Heart Attack & Stroke', 85).rate, 0.88, st + ' 81-90');
+  });
+  ['FL', 'OH'].forEach(function (st) {
+    close(everest(st, 'Cancer, Heart Attack & Stroke', 70).rate, 0.80, st + ' 0-80');
+    close(everest(st, 'Cancer, Heart Attack & Stroke', 85).rate, 0.68, st + ' 81-90');
+  });
+  close(everest('NJ', 'Cancer, Heart Attack & Stroke', 70).rate, 0.40, 'NJ 0-80');
+  close(everest('NJ', 'Cancer, Heart Attack & Stroke', 85).rate, 0.28, 'NJ 81-90');
+});
+
+test('the two Everest schedules stop at different ages', function () {
+  // Hospital Indemnity runs to 85, Cancer/HAS to 90.
+  assert.ok(everest('TX', 'Hospital Indemnity', 85).found, 'HI should resolve at 85');
+  assert.strictEqual(everest('TX', 'Hospital Indemnity', 86).message, engine.NOT_FOUND);
+  assert.ok(everest('TX', 'Cancer, Heart Attack & Stroke', 90).found, 'CHAS should resolve at 90');
+  assert.strictEqual(everest('TX', 'Cancer, Heart Attack & Stroke', 91).message, engine.NOT_FOUND);
+});
+
+test('Everest reports its advance term as unknown rather than guessing', function () {
+  var r = everest('TX', 'Hospital Indemnity', 70);
+  assert.strictEqual(engine.getAdvanceMonths('Everest', 'ancillary'), null);
+  assert.strictEqual(r.paymentMethod, 'advance-unknown');
+  assert.strictEqual(r.upfrontCommission, undefined, 'no upfront figure may be invented');
+  close(r.totalFirstYearCommission, 912, 'the first-year figure is still correct');
+  assert.ok(r.advanceSource && /advance exists/.test(r.advanceSource));
+});
+
+test('Everest renewal rates are recorded in the note, not the math', function () {
+  assert.ok(/6\.25%/.test(everest('TX', 'Hospital Indemnity', 70).note));
+  assert.ok(/3\.25%/.test(everest('TX', 'Cancer, Heart Attack & Stroke', 70).note));
 });
 
 console.log('\nBlue Shield of California');
