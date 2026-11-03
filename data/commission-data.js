@@ -99,7 +99,7 @@
     'Bankers Fidelity': {
       default: 6,
       byCategory: { medicare_supplement: 9 },
-      source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary"'
+      source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary". The MGA commission schedule states no advance term of its own.'
     },
     'Everest': {
       default: null,
@@ -1313,8 +1313,22 @@
   }());
 
   // ===========================================================================
-  // BANKERS FIDELITY - General Agent
+  // BANKERS FIDELITY - Managing General Agent (MGA)
   // Medicare Supplement 9 month advance / ancillary 6 month advance
+  //
+  // Source: the 5-page "Managing General Agent" schedule, revision (7-26). This
+  // replaced the General Agent schedule previously loaded here; MGA pays
+  // slightly more across almost every product.
+  //
+  // Bankers Fidelity splits Medicare Supplement by underwriting company
+  // (BFLIC, BFAC, ACLAC and pairings of them) and then by state, with the
+  // policy-year bands differing between blocks - 1st Year, 1-5, 1-6 or 1-7
+  // Years depending on the block. Only the first-year column is loaded, as
+  // everywhere else in this file.
+  //
+  // Medicare Supplement is not on this schedule for California, Florida, Idaho
+  // or Nevada, so the calculator offers none there. The ancillary and final
+  // expense products do reach some of those states.
   // ===========================================================================
   (function bankersFidelity() {
     function bf(states, product, bands, note) {
@@ -1326,92 +1340,100 @@
       });
     }
 
-    // Illinois (ACLAC)
-    bf(['IL'], 'Medicare Supplement - Preferred / Standard', [[null, 80, 0.23], [81, null, 0.115]]);
-    bf(['IL'], 'Medicare Supplement - Plans HDF, HDG & K', [[65, 80, 0.28], [81, null, 0.14]]);
+    var PREF = 'Medicare Supplement - Preferred / Standard';
+    var HD = 'Medicare Supplement - Plans HDF, HDG & K';
+    var DIS = 'Medicare Supplement - Disability (under 65)';
+    var DIS_HD = 'Medicare Supplement - Disability, Plans HDF, HDG & K (under 65)';
+
+    // Illinois (ACLAC). The block's plan-code column is asterisked
+    // "*Disability Plans are included", so disability pays the same as
+    // Preferred / Standard rather than carrying its own rate.
+    bf(['IL'], PREF, [[null, 80, 0.24], [81, null, 0.12]]);
+    bf(['IL'], HD, [[65, 80, 0.29], [81, null, 0.145]]);
+    bf(['IL'], DIS, [[null, 64, 0.24]],
+      'Illinois folds the disability plan codes into the Preferred / Standard row, so disability pays the same rate.');
+    bf(['IL'], DIS_HD, [[null, 64, 0.29]],
+      'Illinois folds the disability plan codes into the Preferred / Standard row, so disability pays the same rate.');
 
     // AZ, NC, NJ, OH, VA (BFAC/ACLAC group)
-    bf(['AZ', 'NC', 'NJ', 'OH', 'VA'], 'Medicare Supplement - Preferred / Standard', [[null, 80, 0.23], [81, null, 0.115]]);
-    bf(['AZ', 'NC', 'NJ', 'OH', 'VA'], 'Medicare Supplement - Plans HDF, HDG & K', [[65, 80, 0.28], [81, null, 0.14]]);
+    bf(['AZ', 'NC', 'NJ', 'OH', 'VA'], PREF, [[null, 80, 0.24], [81, null, 0.12]]);
+    bf(['AZ', 'NC', 'NJ', 'OH', 'VA'], HD, [[65, 80, 0.29], [81, null, 0.145]]);
 
     // Pennsylvania (BFAC)
-    bf(['PA'], 'Medicare Supplement - Preferred / Standard', [[null, 80, 0.23], [81, null, 0.115]]);
-    bf(['PA'], 'Medicare Supplement - Plans HDF, HDG & K', [[65, 80, 0.28], [81, null, 0.14]]);
+    bf(['PA'], PREF, [[null, 80, 0.24], [81, null, 0.12]]);
+    bf(['PA'], HD, [[65, 80, 0.29], [81, null, 0.145]]);
 
-    // Louisiana (BFAC/ACLAC, grouped with MS)
-    bf(['LA'], 'Medicare Supplement - Preferred / Standard', [[null, 80, 0.23], [81, null, 0.115]]);
-    bf(['LA'], 'Medicare Supplement - Plans HDF, HDG & K', [[65, 80, 0.28], [81, null, 0.14]]);
+    // Louisiana (BFAC/ACLAC, grouped with Mississippi on page 5)
+    bf(['LA'], PREF, [[null, 80, 0.24], [81, null, 0.12]]);
+    bf(['LA'], HD, [[65, 80, 0.29], [81, null, 0.145]]);
 
-    // Texas (ACLAC)
-    bf(['TX'], 'Medicare Supplement - Preferred / Standard', [[null, 80, 0.22], [81, null, 0.11]]);
-    bf(['TX'], 'Medicare Supplement - Plans HDF, HDG & K', [[65, 80, 0.26], [81, null, 0.13]]);
+    // Texas (ACLAC). Its bands run 1-7 / 8-10 years rather than 1-6 / 7-10,
+    // which only affects renewals, and it pays a point less than the rest.
+    bf(['TX'], PREF, [[null, 80, 0.23], [81, null, 0.115]]);
+    bf(['TX'], HD, [[65, 80, 0.26], [81, null, 0.13]]);
 
-    // Disability plans. The rate is 4% in most states but Pennsylvania and
-    // Louisiana pay considerably more, and both add a separate rate for the
-    // high-deductible disability form (8236).
-    bf(['AZ', 'NC', 'NJ', 'OH', 'TX', 'VA'], 'Medicare Supplement - Disability (under 65)',
-      [[null, 64, 0.04]]);
-    bf(['PA'], 'Medicare Supplement - Disability (under 65)',
-      [[null, 64, 0.115]]);
-    bf(['PA'], 'Medicare Supplement - Disability, Plans HDF, HDG & K (under 65)',
-      [[null, 64, 0.14]]);
-    bf(['LA'], 'Medicare Supplement - Disability (under 65)',
-      [[null, 64, 0.23]]);
-    bf(['LA'], 'Medicare Supplement - Disability, Plans HDF, HDG & K (under 65)',
-      [[null, 64, 0.28]]);
+    // Disability plans (forms 8121 / 8126 / 8133, and 8236 for the
+    // high-deductible plans). Most states pay a flat few percent; Pennsylvania
+    // and Louisiana pay many times that.
+    bf(['AZ', 'NC', 'NJ', 'OH', 'VA'], DIS, [[null, 64, 0.04]]);
+    bf(['TX'], DIS, [[null, 64, 0.05]]);
+    bf(['PA'], DIS, [[null, 64, 0.12]]);
+    bf(['PA'], DIS_HD, [[null, 64, 0.145]]);
+    bf(['LA'], DIS, [[null, 64, 0.24]]);
+    bf(['LA'], DIS_HD, [[null, 64, 0.29]]);
 
     // --- Ancillary (6 month advance) ---------------------------------------
     add([
       {
         carrier: 'Bankers Fidelity', states: ['AZ', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX'], category: 'ancillary',
-        product: 'Vantage Flex Plus (Hospital Indemnity)', rate: 0.67
+        product: 'Vantage Flex Plus (Hospital Indemnity)', rate: 0.695
       },
       {
         carrier: 'Bankers Fidelity', states: ['VA'], category: 'ancillary',
-        product: 'Vantage Flex Plus (Hospital Indemnity)', rate: 0.52
+        product: 'Vantage Flex Plus (Hospital Indemnity)', rate: 0.545
       },
 
       {
         carrier: 'Bankers Fidelity', states: ['AZ', 'ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX', 'VA'], category: 'ancillary',
-        product: 'Vantage Care (Lump Sum Cancer)', minAge: 18, maxAge: 84, rate: 1.00
+        product: 'Vantage Care (Lump Sum Cancer)', minAge: 18, maxAge: 84, rate: 1.05
       },
       {
         carrier: 'Bankers Fidelity', states: ['AZ', 'ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX', 'VA'], category: 'ancillary',
-        product: 'Vantage Care (Lump Sum Cancer)', minAge: 85, rate: 0.70
+        product: 'Vantage Care (Lump Sum Cancer)', minAge: 85, rate: 0.75
       },
       {
         carrier: 'Bankers Fidelity', states: ['OH'], category: 'ancillary',
-        product: 'Vantage Care (Lump Sum Cancer)', minAge: 18, maxAge: 84, rate: 0.95
+        product: 'Vantage Care (Lump Sum Cancer)', minAge: 18, maxAge: 84, rate: 1.00
       },
       {
         carrier: 'Bankers Fidelity', states: ['OH'], category: 'ancillary',
-        product: 'Vantage Care (Lump Sum Cancer)', minAge: 85, rate: 0.70
+        product: 'Vantage Care (Lump Sum Cancer)', minAge: 85, rate: 0.75
       },
       {
         carrier: 'Bankers Fidelity', states: ['NJ'], category: 'ancillary',
-        product: 'Vantage Care (Lump Sum Cancer)', minAge: 18, maxAge: 84, rate: 0.87
+        product: 'Vantage Care (Lump Sum Cancer)', minAge: 18, maxAge: 84, rate: 0.92
       },
       {
         carrier: 'Bankers Fidelity', states: ['NJ'], category: 'ancillary',
-        product: 'Vantage Care (Lump Sum Cancer)', minAge: 85, rate: 0.62
+        product: 'Vantage Care (Lump Sum Cancer)', minAge: 85, rate: 0.67
       },
 
       {
         carrier: 'Bankers Fidelity', states: ['IL', 'LA', 'NC', 'NV', 'PA', 'TX'], category: 'ancillary',
-        product: 'Vantage Recovery (Short-Term Care)', rate: 0.60
+        product: 'Vantage Recovery (Short-Term Care)', rate: 0.625
       },
       {
         carrier: 'Bankers Fidelity', states: ['AZ', 'OH'], category: 'ancillary',
-        product: 'Vantage Recovery (Short-Term Care)', rate: 0.50
+        product: 'Vantage Recovery (Short-Term Care)', rate: 0.525
       },
 
       {
         carrier: 'Bankers Fidelity', states: ALL, category: 'final_expense',
-        product: 'LifeVantage Secure Final Expense Whole Life', minAge: 45, maxAge: 75, rate: 1.35
+        product: 'LifeVantage Secure Final Expense Whole Life', minAge: 45, maxAge: 75, rate: 1.40
       },
       {
         carrier: 'Bankers Fidelity', states: ALL, category: 'final_expense',
-        product: 'LifeVantage Secure Final Expense Whole Life', minAge: 76, maxAge: 85, rate: 0.875
+        product: 'LifeVantage Secure Final Expense Whole Life', minAge: 76, maxAge: 85, rate: 0.90
       }
     ]);
   }());

@@ -178,8 +178,8 @@ test('6-month advance on Bankers Fidelity ancillary leaves 6 months as-earned', 
   });
   assert.ok(r.found);
   assert.strictEqual(r.advanceMonths, 6);
-  close(r.upfrontCommission, 150 * 6 * 0.67, 'upfront');
-  close(r.remainingAsEarned, 150 * 6 * 0.67, 'remaining');
+  close(r.upfrontCommission, 150 * 6 * 0.695, 'upfront');
+  close(r.remainingAsEarned, 150 * 6 * 0.695, 'remaining');
   assert.strictEqual(r.remainingMonths, 6);
 });
 
@@ -193,7 +193,7 @@ test('same Bankers Fidelity state uses a 9-month advance for Medicare Supplement
   });
   assert.ok(r.found);
   assert.strictEqual(r.advanceMonths, 9);
-  close(r.rate, 0.22, 'rate');
+  close(r.rate, 0.23, 'rate');
 });
 
 test('no advance: Manhattan Life pays as-earned monthly', function () {
@@ -981,35 +981,61 @@ test('Medico other product lines match the source', function () {
 test('Bankers Fidelity Disability rates are not uniform across states', function () {
   var dis = 'Medicare Supplement - Disability (under 65)';
   var hd = 'Medicare Supplement - Disability, Plans HDF, HDG & K (under 65)';
-  ['AZ', 'NC', 'NJ', 'OH', 'TX', 'VA'].forEach(function (st) {
+  ['AZ', 'NC', 'NJ', 'OH', 'VA'].forEach(function (st) {
     close(engine.findRule('Bankers Fidelity', st, dis, 60).rate, 0.04, st + ' disability');
     assert.ok(engine.getProducts('Bankers Fidelity', st).indexOf(hd) === -1,
       st + ' has no separate high-deductible disability rate');
   });
-  close(engine.findRule('Bankers Fidelity', 'PA', dis, 60).rate, 0.115, 'PA disability');
-  close(engine.findRule('Bankers Fidelity', 'PA', hd, 60).rate, 0.14, 'PA HDF/HDG/K disability');
-  close(engine.findRule('Bankers Fidelity', 'LA', dis, 60).rate, 0.23, 'LA disability');
-  close(engine.findRule('Bankers Fidelity', 'LA', hd, 60).rate, 0.28, 'LA HDF/HDG/K disability');
+  close(engine.findRule('Bankers Fidelity', 'TX', dis, 60).rate, 0.05, 'TX disability');
+  close(engine.findRule('Bankers Fidelity', 'PA', dis, 60).rate, 0.12, 'PA disability');
+  close(engine.findRule('Bankers Fidelity', 'PA', hd, 60).rate, 0.145, 'PA HDF/HDG/K disability');
+  close(engine.findRule('Bankers Fidelity', 'LA', dis, 60).rate, 0.24, 'LA disability');
+  close(engine.findRule('Bankers Fidelity', 'LA', hd, 60).rate, 0.29, 'LA HDF/HDG/K disability');
+  // Illinois folds the disability codes into Preferred / Standard, so it pays
+  // the full rate rather than a token few percent.
+  close(engine.findRule('Bankers Fidelity', 'IL', dis, 60).rate, 0.24, 'IL disability');
+  close(engine.findRule('Bankers Fidelity', 'IL', hd, 60).rate, 0.29, 'IL HDF/HDG/K disability');
+});
+
+test('Bankers Fidelity Medicare Supplement is not written in CA, FL, ID or NV', function () {
+  // The MGA schedule's Medicare Supplement blocks name no state group covering
+  // these four, though its ancillary products do reach some of them.
+  ['CA', 'FL', 'ID', 'NV'].forEach(function (st) {
+    var products = engine.getProducts('Bankers Fidelity', st);
+    assert.ok(
+      products.every(function (p) { return p.indexOf('Medicare Supplement') !== 0; }),
+      st + ' should offer no Bankers Fidelity Medicare Supplement'
+    );
+  });
+  // Florida and Idaho still get Hospital Indemnity.
+  assert.ok(engine.getProducts('Bankers Fidelity', 'FL')
+    .indexOf('Vantage Flex Plus (Hospital Indemnity)') !== -1);
 });
 
 test('Bankers Fidelity Medicare Supplement and ancillary rates match the source', function () {
   var ps = 'Medicare Supplement - Preferred / Standard';
   var hdk = 'Medicare Supplement - Plans HDF, HDG & K';
   ['AZ', 'IL', 'LA', 'NC', 'NJ', 'OH', 'PA', 'VA'].forEach(function (st) {
-    close(engine.findRule('Bankers Fidelity', st, ps, 70).rate, 0.23, st + ' Pref/Standard');
-    close(engine.findRule('Bankers Fidelity', st, hdk, 70).rate, 0.28, st + ' HDF/HDG/K');
+    close(engine.findRule('Bankers Fidelity', st, ps, 70).rate, 0.24, st + ' Pref/Standard');
+    close(engine.findRule('Bankers Fidelity', st, hdk, 70).rate, 0.29, st + ' HDF/HDG/K');
+    close(engine.findRule('Bankers Fidelity', st, ps, 85).rate, 0.12, st + ' Pref/Standard 81+');
+    close(engine.findRule('Bankers Fidelity', st, hdk, 85).rate, 0.145, st + ' HDF/HDG/K 81+');
   });
-  close(engine.findRule('Bankers Fidelity', 'TX', ps, 70).rate, 0.22, 'TX Pref/Standard');
+  close(engine.findRule('Bankers Fidelity', 'TX', ps, 70).rate, 0.23, 'TX Pref/Standard');
   close(engine.findRule('Bankers Fidelity', 'TX', hdk, 70).rate, 0.26, 'TX HDF/HDG/K');
+  close(engine.findRule('Bankers Fidelity', 'TX', ps, 85).rate, 0.115, 'TX Pref/Standard 81+');
+  close(engine.findRule('Bankers Fidelity', 'TX', hdk, 85).rate, 0.13, 'TX HDF/HDG/K 81+');
 
-  close(engine.findRule('Bankers Fidelity', 'TX', 'Vantage Flex Plus (Hospital Indemnity)', 60).rate, 0.67, 'TX HI');
-  close(engine.findRule('Bankers Fidelity', 'VA', 'Vantage Flex Plus (Hospital Indemnity)', 60).rate, 0.52, 'VA HI');
-  close(engine.findRule('Bankers Fidelity', 'OH', 'Vantage Care (Lump Sum Cancer)', 60).rate, 0.95, 'OH Vantage Care');
-  close(engine.findRule('Bankers Fidelity', 'NJ', 'Vantage Care (Lump Sum Cancer)', 60).rate, 0.87, 'NJ Vantage Care');
-  close(engine.findRule('Bankers Fidelity', 'TX', 'Vantage Recovery (Short-Term Care)', 60).rate, 0.60, 'TX Recovery');
-  close(engine.findRule('Bankers Fidelity', 'AZ', 'Vantage Recovery (Short-Term Care)', 60).rate, 0.50, 'AZ Recovery');
-  close(engine.findRule('Bankers Fidelity', 'TX', 'LifeVantage Secure Final Expense Whole Life', 60).rate, 1.35, 'FE 45-75');
-  close(engine.findRule('Bankers Fidelity', 'TX', 'LifeVantage Secure Final Expense Whole Life', 80).rate, 0.875, 'FE 76-85');
+  close(engine.findRule('Bankers Fidelity', 'TX', 'Vantage Flex Plus (Hospital Indemnity)', 60).rate, 0.695, 'TX HI');
+  close(engine.findRule('Bankers Fidelity', 'VA', 'Vantage Flex Plus (Hospital Indemnity)', 60).rate, 0.545, 'VA HI');
+  close(engine.findRule('Bankers Fidelity', 'TX', 'Vantage Care (Lump Sum Cancer)', 60).rate, 1.05, 'TX Vantage Care');
+  close(engine.findRule('Bankers Fidelity', 'OH', 'Vantage Care (Lump Sum Cancer)', 60).rate, 1.00, 'OH Vantage Care');
+  close(engine.findRule('Bankers Fidelity', 'NJ', 'Vantage Care (Lump Sum Cancer)', 60).rate, 0.92, 'NJ Vantage Care');
+  close(engine.findRule('Bankers Fidelity', 'NJ', 'Vantage Care (Lump Sum Cancer)', 86).rate, 0.67, 'NJ Vantage Care 85+');
+  close(engine.findRule('Bankers Fidelity', 'TX', 'Vantage Recovery (Short-Term Care)', 60).rate, 0.625, 'TX Recovery');
+  close(engine.findRule('Bankers Fidelity', 'AZ', 'Vantage Recovery (Short-Term Care)', 60).rate, 0.525, 'AZ Recovery');
+  close(engine.findRule('Bankers Fidelity', 'TX', 'LifeVantage Secure Final Expense Whole Life', 60).rate, 1.40, 'FE 45-75');
+  close(engine.findRule('Bankers Fidelity', 'TX', 'LifeVantage Secure Final Expense Whole Life', 80).rate, 0.90, 'FE 76-85');
 });
 
 console.log('\nMAPD');

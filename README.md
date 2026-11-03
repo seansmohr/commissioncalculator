@@ -188,6 +188,10 @@ capped at but not every carrier pays. UnitedHealthcare's own schedule pays
 $406-$510 initial on a **non-SNP PPO** against the $694-$864 the tab shows — its
 HMO, SNP and renewal amounts do match. See [`data/SOURCES.md`](data/SOURCES.md).
 
+**Bankers Fidelity** moved from the General Agent schedule to the **Managing
+General Agent** schedule, revision (7-26). Rates went up across almost every
+product. Its Medicare Supplement is not written in CA, FL, ID or NV.
+
 **Everest** covers ten of our thirteen states — it is not filed in California,
 Pennsylvania or Virginia, so the calculator offers nothing there. Its advance
 term is not on file, so its card reports the first-year commission and says the

@@ -20,7 +20,7 @@ published rates are used anywhere.
 | American Benefit Life | `American Benefit Life Commission Schedule.pdf` (ABLBRKMS1_10, eff. 11/01/2025) — **all 3 pages** | GA 10 |
 | Liberty Bankers | `Liberty Bankers Commission Schedules` — **all 5 pages** (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) — **all 12 pages** | MGA Level 4 |
-| Bankers Fidelity | `bankers fidelity commission schedule` (GAT 7-26) — **all 5 pages** | General Agent |
+| Bankers Fidelity | `MGA.pdf` (MGA, rev. 7-26) — **all 5 pages** | Managing General Agent |
 | Everest | `MGA2_Heaped.pdf` (Cancer, Heart Attack & Stroke) and `MGA2_Heaped_1.pdf` (Hospital Indemnity), both rev. 08/15/2026 | MGA2, heaped |
 | GTL | "GTL Commission Rates" panel from the carrier portal (screenshot) | not stated on the panel |
 | Heartland | `heartland commission schedules` — **all 10 pages** (Med Supp eff. 06/01/2019; Cancer/HAS eff. 08/26/2024; Secure Advantage Flex form 93017; Short-Term Home Health Care rev. 10/23) | GA1 |
@@ -519,24 +519,60 @@ Confirmed against all 12 pages. Every Medicare Supplement state block, plus
 Short Term Care, Medico Dental, Hospital Indemnity, First Diagnosis Cancer and
 Critical Illness, matched what was already loaded. No changes were needed.
 
-### Bankers Fidelity — verified, Disability rates corrected
+### Bankers Fidelity — moved from General Agent to MGA
 
-Confirmed against all 5 pages. Medicare Supplement Preferred/Standard and
-HDF/HDG/K rates, Vantage Flex Plus, Vantage Care, Vantage Recovery and
-LifeVantage Secure Final Expense all matched.
+Replaced wholesale with the 5-page **Managing General Agent** schedule,
+revision **(7-26)**, superseding the General Agent schedule previously loaded.
+MGA pays more on almost everything.
 
-One error: **the Disability rate is not 4% everywhere.** It had been loaded as a
-flat 4% across AZ, LA, NC, NJ, OH, PA, TX and VA. The schedule actually pays:
+**Reading the schedule.** Bankers Fidelity splits Medicare Supplement first by
+underwriting company — BFLIC, BFAC, ACLAC and pairings of them — and then by
+state, and the policy-year bands differ between blocks: 1st Year, 1-5 Years,
+1-6 Years or 1-7 Years depending on which one you are in. Only the first-year
+column is loaded, so the differing bands matter only for renewals. The blocks
+run across all five pages, and **page 5 carries Louisiana** — easy to miss if
+you stop at the page headed "Medicare Supplement (Cont'd.)".
 
-| State | Disability | Disability, Plans HDF/HDG/K |
+**What changed, General Agent to MGA:**
+
+| Product | GA | MGA |
 |---|---|---|
-| AZ, NC, NJ, OH, TX, VA | 4% | — |
-| Pennsylvania | **11.5%** | **14%** |
-| Louisiana | **23%** | **28%** |
+| Med Supp Pref/Standard ≤80 (AZ, IL, LA, NC, NJ, OH, PA, VA) | 23% | **24%** |
+| Med Supp Pref/Standard ≤80 (TX) | 22% | **23%** |
+| Med Supp Plans HDF, HDG & K 65-80 | 28% | **29%** |
+| Med Supp Plans HDF, HDG & K 65-80 (TX) | 26% | 26% — unchanged |
+| Disability, AZ/NC/NJ/OH/VA | 4% | 4% — unchanged |
+| Disability, TX | 4% | **5%** |
+| Disability, PA | 11.5% | **12%** |
+| Disability HDF/HDG/K, PA | 14% | **14.5%** |
+| Disability, LA | 23% | **24%** |
+| Disability HDF/HDG/K, LA | 28% | **29%** |
+| Vantage Flex Plus (Hospital Indemnity) | 67% / 52% | **69.5% / 54.5%** |
+| Vantage Care (Lump Sum Cancer) | 100% / 95% / 87% | **105% / 100% / 92%** |
+| Vantage Recovery (Short-Term Care) | 60% / 50% | **62.5% / 52.5%** |
+| LifeVantage Secure Final Expense | 135% / 87.5% | **140% / 90%** |
 
-Pennsylvania and Louisiana also carry a separate rate for the high-deductible
-disability form (8236), which had no entry at all. Louisiana disability was
-understated by nearly six times.
+**Illinois pays full freight on disability.** Its block asterisks the plan-code
+column with "*Disability Plans are included", meaning the disability forms
+(8121, 8126) sit inside the Preferred / Standard row rather than carrying a
+token rate of their own. So Illinois disability pays **24%**, not the 4% that
+AZ, NC, NJ, OH and VA pay. Illinois had no disability rule at all under the
+General Agent data; it does now.
+
+**Medicare Supplement is not on this schedule for California, Florida, Idaho or
+Nevada.** None of the Medicare Supplement state groups names them, so the
+calculator offers no Bankers Fidelity Medicare Supplement there. The ancillary
+side still reaches some of them — Florida and Idaho get Hospital Indemnity,
+California gets Final Expense only.
+
+**Advance is unchanged:** 9 months on Medicare Supplement, 6 on ancillary, from
+the spreadsheet. The MGA schedule states no advance term of its own.
+
+Also carried as a note rather than modeled: future rate increases on base or
+rider premium are non-commissionable (except Indiana Medicare Supplement), as
+are policy fees, and guaranteed-issue business pays a one-time **$25 writing
+compensation** to the writing agent instead of a percentage — $50 in the first
+year in Pennsylvania, with $25 in years 2-6.
 
 ### Liberty Bankers — verified, nothing wrong
 
