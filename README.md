@@ -166,7 +166,7 @@ the asset allowlist and path-traversal handling.
 Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life,
 Anthem Blue Cross (California only), Bankers Fidelity, Blue Shield of California
 (California only), Everest, GTL, Healthspring,
-Heartland, Liberty Bankers, Manhattan Life, Medico,
+Heartland, Liberty Bankers, Manhattan Life, Medico, NCD,
 Mutual of Omaha (Long Term Care only), Physicians Mutual, United American,
 UnitedHealthcare (AARP Medicare Supplement).
 
@@ -187,6 +187,10 @@ verification and shows a caution note on the results card. See
 capped at but not every carrier pays. UnitedHealthcare's own schedule pays
 $406-$510 initial on a **non-SNP PPO** against the $694-$864 the tab shows — its
 HMO, SNP and renewal amounts do match. See [`data/SOURCES.md`](data/SOURCES.md).
+
+**NCD** is loaded at our **SGA** contract level — the top of the five on its
+schedule. Its one table has no state or age breakdown, so each product carries a
+single rate everywhere.
 
 **Bankers Fidelity** moved from the General Agent schedule to the **Managing
 General Agent** schedule, revision (7-26). Rates went up across almost every

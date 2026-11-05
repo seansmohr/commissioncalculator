@@ -1063,7 +1063,7 @@ test('calculate() still delegates to the MAPD path when handed the MAPD carrier'
 test('MAPD is not a carrier and stays out of the carrier list', function () {
   var carriers = engine.getCarriers();
   assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
-  assert.strictEqual(carriers.length, 17, 'the carrier list is the seventeen real carriers');
+  assert.strictEqual(carriers.length, 18, 'the carrier list is the eighteen real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
   assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
@@ -1190,6 +1190,59 @@ test('existing percentage-of-premium carriers are untouched by MAPD', function (
   close(r.rate, 0.25, 'rate');
   close(r.upfrontCommission, 300, 'upfront');
   assert.strictEqual(r.advanceMonths, 12);
+});
+
+console.log('\nNCD');
+
+function ncd(product, state, age) {
+  return engine.calculate({
+    carrier: 'NCD', state: state || 'PA', product: product,
+    age: age == null ? 55 : age, monthlyPremium: 100
+  });
+}
+
+test('NCD is loaded at the SGA contract level rates', function () {
+  assert.ok(engine.getCarriers().indexOf('NCD') !== -1);
+  close(ncd('MetLife Dental').rate, 0.24, 'MetLife Dental');
+  close(ncd('VSP Vision').rate, 0.37, 'VSP Vision');
+  close(ncd('AccidentPrime').rate, 0.39, 'AccidentPrime');
+});
+
+test('the lower NCD contract levels are not loaded', function () {
+  // MGA 23/36/38, GA 22/35/37, Street 21/34/36 and LOA 0% are on the same
+  // table; only our own SGA row belongs in the calculator.
+  var rates = DATA.rules
+    .filter(function (r) { return r.carrier === 'NCD'; })
+    .map(function (r) { return r.rate; })
+    .sort();
+  assert.deepStrictEqual(rates, [0.24, 0.37, 0.39]);
+});
+
+test('NCD is written in every appointed state at every age', function () {
+  ['AZ', 'CA', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'].forEach(function (st) {
+    ['MetLife Dental', 'VSP Vision', 'AccidentPrime'].forEach(function (product) {
+      [0, 40, 90].forEach(function (age) {
+        assert.ok(ncd(product, st, age).found, product + ' should resolve in ' + st + ' at ' + age);
+      });
+    });
+  });
+});
+
+test('NCD pays as earned, with no advance', function () {
+  var r = ncd('VSP Vision');
+  assert.strictEqual(engine.getAdvanceMonths('NCD', 'ancillary'), 0);
+  assert.strictEqual(r.advanceMonths, 0);
+  assert.strictEqual(r.paymentMethod, 'as-earned');
+  assert.strictEqual(r.upfrontCommission, undefined);
+  close(r.monthlyCommission, 37, 'monthly');
+  close(r.totalFirstYearCommission, 444, 'first year');
+});
+
+test('every NCD rule carries the association-fee caveat', function () {
+  DATA.rules.filter(function (r) { return r.carrier === 'NCD'; })
+    .forEach(function (r) {
+      assert.ok(/NWFA Association/.test(r.note), r.product + ' is missing the NWFA note');
+    });
 });
 
 console.log('\nEverest');

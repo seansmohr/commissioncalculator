@@ -101,6 +101,10 @@
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary". The MGA commission schedule states no advance term of its own.'
     },
+    'NCD': {
+      default: 0,
+      source: 'SGA compensation schedule, General Rules: "Commissions are paid out as earned."'
+    },
     'Everest': {
       default: null,
       source: 'Not on file. The MGA2 schedules refer to "chargebacks on unearned advanced premiums", so an advance exists, but neither schedule states its term.'
@@ -2136,6 +2140,41 @@
           }
         ]);
       });
+    });
+  }());
+
+
+  // ===========================================================================
+  // NCD  (SGA contract level) - no advance, paid as earned
+  //
+  // Source: "Compensation Schedule and Contract Level Requirements - All
+  // Products | SGA Contract Level", effective 07/09/2026. One page, one table:
+  // five contract levels against three products. We are SGA, the top level.
+  //
+  // The schedule carries NO state breakdown and NO age bands - one rate per
+  // product, full stop - so these rules are written to all appointed states at
+  // all ages. Unlike the GTL panel, this is the carrier's own schedule rather
+  // than a portal screenshot, so the absence of that detail is the schedule's
+  // actual content rather than a gap in what we were given.
+  //
+  // The table's "New members per year" and "New revenue per year" columns are
+  // the production requirements for holding each level, not commission, and are
+  // deliberately not modeled.
+  // ===========================================================================
+  (function ncd() {
+    var FEES = 'Commission on dental and vision is paid on premium only - NWFA Association fees are not commissionable. Accident-only enrollments do pay commission on the NWFA Association.';
+    var FLAT = 'SGA contract level. The schedule carries one rate per product with no state or age breakdown.';
+
+    [
+      ['MetLife Dental', 0.24],
+      ['VSP Vision', 0.37],
+      ['AccidentPrime', 0.39]
+    ].forEach(function (row) {
+      add([{
+        carrier: 'NCD', states: ALL, category: 'ancillary',
+        product: row[0], rate: row[1],
+        note: FLAT + ' ' + FEES
+      }]);
     });
   }());
 

@@ -19,6 +19,7 @@ published rates are used anywhere.
 | Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (TERBRKXX01_08, eff. 05/01/2026) — **all 4 pages** | GA 8 |
 | American Benefit Life | `American Benefit Life Commission Schedule.pdf` (ABLBRKMS1_10, eff. 11/01/2025) — **all 3 pages** | GA 10 |
 | Liberty Bankers | `Liberty Bankers Commission Schedules` — **all 5 pages** (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
+| NCD | `SGA_All_Products_Combo_eff_7.9.26.pdf` — **one page** (eff. 07/09/2026) | SGA (top of five levels) |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) — **all 12 pages** | MGA Level 4 |
 | Bankers Fidelity | `MGA.pdf` (MGA, rev. 7-26) — **all 5 pages** | Managing General Agent |
 | Everest | `MGA2_Heaped.pdf` (Cancer, Heart Attack & Stroke) and `MGA2_Heaped_1.pdf` (Hospital Indemnity), both rev. 08/15/2026 | MGA2, heaped |
@@ -172,6 +173,41 @@ column structure that flat text extraction destroys. Scanned pages with no text
 layer are read visually from page renders. This is how the Aetna, Mutual of
 Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
 right way to add the remaining carriers.
+
+### NCD — one table, three products, SGA level
+
+A single page: five contract levels against three products, effective
+**07/09/2026**. We are **SGA**, the top of the five.
+
+| Contract level | MetLife Dental | VSP Vision | AccidentPrime |
+|---|---|---|---|
+| **SGA (ours)** | **24%** | **37%** | **39%** |
+| MGA | 23% | 36% | 38% |
+| GA | 22% | 35% | 37% |
+| Street | 21% | 34% | 36% |
+| LOA | 0% | 0% | 0% |
+
+Only the SGA row is loaded; a test asserts the only NCD rates in the file are
+24%, 37% and 39%, so a lower level cannot creep in.
+
+The table's last two columns — **New members per year** (250) and **New revenue
+per year** ($225,000) — are the production requirements for holding the SGA
+level, not commission, and are deliberately not modeled.
+
+**No state breakdown and no age bands.** One rate per product, full stop, so the
+rules are written to all 13 appointed states at all ages. This looks like the
+GTL situation but is not: GTL's rules are flagged for verification because a
+portal rates panel is a weaker source than a schedule. This *is* the carrier's
+own compensation schedule, so the absence of state and age detail is the
+schedule's actual content rather than a gap in what we hold, and the rules are
+not flagged.
+
+**Advance: none.** The General Rules say so outright — "Commissions are paid
+out as earned."
+
+Carried as a note rather than modeled: commission on dental and vision is paid
+on premium only, with NWFA Association fees non-commissionable, while
+Accident-only enrollments **do** pay commission on the NWFA Association.
 
 ### Everest — two ancillary schedules, ten of our thirteen states
 
