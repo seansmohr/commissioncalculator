@@ -19,6 +19,7 @@ published rates are used anywhere.
 | Aflac | `aflac commission schedule.pdf` — Tier One Insurance Company (TERBRKXX01_08, eff. 05/01/2026) — **all 4 pages** | GA 8 |
 | American Benefit Life | `American Benefit Life Commission Schedule.pdf` (ABLBRKMS1_10, eff. 11/01/2025) — **all 3 pages** | GA 10 |
 | Liberty Bankers | `Liberty Bankers Commission Schedules` — **all 5 pages** (Med Supp eff. 08/01/2026; Supplemental Health eff. 05/01/2026) | GA10 / Level 10 Heaped |
+| UNL | `Mohr Insurance Services UNL Commissions with Ranks.xlsx` — **all 5 sheets** | varies by product: ranks 47-75 |
 | NCD | `SGA_All_Products_Combo_eff_7.9.26.pdf` — **one page** (eff. 07/09/2026) | SGA (top of five levels) |
 | Medico (Wellabe) | `wellabe/medico commission schedules.pdf` (eff. 09/01/2026) — **all 12 pages** | MGA Level 4 |
 | Bankers Fidelity | `MGA.pdf` (MGA, rev. 7-26) — **all 5 pages** | Managing General Agent |
@@ -173,6 +174,54 @@ column structure that flat text extraction destroys. Scanned pages with no text
 layer are read visually from page renders. This is how the Aetna, Mutual of
 Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
 right way to add the remaining carriers.
+
+### UNL — our own rank picked out of five rank ladders
+
+A workbook with one sheet per product. Each sheet lists every UNL rank from
+street level upward, and the row shaded blue and labelled **"Mohr Insurance
+Services Comps"** is ours. That is the only row loaded on each sheet; the yellow
+row below it is **"UNL's Street Level"** and is deliberately left out. A test
+asserts none of the five street-level figures appears anywhere in the file.
+
+Our rank is not the same on every product:
+
+| Product | Our rank | Issue ages | 1st year | Street level |
+|---|---|---|---|---|
+| Cancer Shield 2.0 | 60 | 18-75 / 76-85 | **65% / 60%** | 36 (50%) |
+| Dental Shield 2.0 & DV | 47 | 18-80 / 81-89 | **52.5% / 47.5%** | 38 (45%) |
+| Short-Term Home Health Care Shield | 60 | 55-85 | **70%** | 50 (60%) |
+| Hospital Indemnity Shield | 75 | 50-79 / 80-85 | **72.5% / 62.5%** | 65 (65%) |
+| G.I. Hospital Indemnity Shield | 50 | 50-79 / 80-85 | **45% / 35%** | 40 (40%) |
+
+Renewal rates are recorded in each rule's note rather than modeled, as
+everywhere else in this file.
+
+#### States are per product, and two kinds of state are left out
+
+Each sheet names the **Basic States** its rates apply to, at a 50% or 55% loss
+ratio, and then adds a note naming states that "have different loss ratios and
+will have a lower commission percentage" — **without giving the figure**.
+
+States in the second category get **no rule for that product**: we know the
+basic-state rate is wrong for them, and we know it is too high, so loading it
+would overstate what the agency is owed. The combinations this costs us:
+
+| Product | Our states on the lower-loss-ratio list |
+|---|---|
+| Cancer Shield 2.0 | **OH** |
+| Hospital Indemnity Shield | **AZ**, **VA** |
+| Dental Shield, Home Health Care, G.I. Hospital Indemnity | none |
+
+Those states still get the products whose sheets do list them — Ohio has Dental
+Shield, Arizona and Virginia have the G.I. Hospital Indemnity Shield. Asking UNL
+for the adjusted percentages would close these three gaps.
+
+**California and New Jersey appear on no sheet at all**, so UNL offers nothing
+in either. Florida is absent from Home Health Care only, and Nevada from Dental
+Shield only.
+
+**Advance:** 9 months on all products, confirmed with the agency. The workbook
+states no advance term of its own.
 
 ### NCD — one table, three products, SGA level
 

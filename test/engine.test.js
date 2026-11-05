@@ -1063,7 +1063,7 @@ test('calculate() still delegates to the MAPD path when handed the MAPD carrier'
 test('MAPD is not a carrier and stays out of the carrier list', function () {
   var carriers = engine.getCarriers();
   assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
-  assert.strictEqual(carriers.length, 18, 'the carrier list is the eighteen real carriers');
+  assert.strictEqual(carriers.length, 19, 'the carrier list is the nineteen real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
   assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
@@ -1190,6 +1190,95 @@ test('existing percentage-of-premium carriers are untouched by MAPD', function (
   close(r.rate, 0.25, 'rate');
   close(r.upfrontCommission, 300, 'upfront');
   assert.strictEqual(r.advanceMonths, 12);
+});
+
+console.log('\nUNL');
+
+function unl(product, state, age) {
+  return engine.calculate({
+    carrier: 'UNL', state: state, product: product, age: age, monthlyPremium: 100
+  });
+}
+
+test('UNL loads our own rank on each sheet, not street level', function () {
+  assert.ok(engine.getCarriers().indexOf('UNL') !== -1);
+  close(unl('Cancer Shield 2.0', 'PA', 60).rate, 0.65, 'Cancer rank 60');
+  close(unl('Dental Shield 2.0 & DV', 'PA', 60).rate, 0.525, 'Dental rank 47');
+  close(unl('Short-Term Home Health Care Shield', 'PA', 60).rate, 0.70, 'HHC rank 60');
+  close(unl('Hospital Indemnity Shield', 'PA', 60).rate, 0.725, 'Hosp Indem rank 75');
+  close(unl('G.I. Hospital Indemnity Shield', 'PA', 60).rate, 0.45, 'GI Hosp Indem rank 50');
+});
+
+test('UNL street-level rates are nowhere in the file', function () {
+  // Street level is 50% Cancer, 45% Dental, 60% HHC, 65% Hosp Indem, 40% GI.
+  var byProduct = {};
+  DATA.rules.filter(function (r) { return r.carrier === 'UNL'; })
+    .forEach(function (r) { (byProduct[r.product] = byProduct[r.product] || []).push(r.rate); });
+  assert.ok(byProduct['Cancer Shield 2.0'].indexOf(0.50) === -1, 'Cancer street level leaked in');
+  assert.ok(byProduct['Dental Shield 2.0 & DV'].indexOf(0.45) === -1, 'Dental street level leaked in');
+  assert.ok(byProduct['Short-Term Home Health Care Shield'].indexOf(0.60) === -1, 'HHC street level leaked in');
+  assert.ok(byProduct['Hospital Indemnity Shield'].indexOf(0.65) === -1, 'Hosp Indem street level leaked in');
+  assert.ok(byProduct['G.I. Hospital Indemnity Shield'].indexOf(0.40) === -1, 'GI street level leaked in');
+});
+
+test('UNL issue-age bands match each sheet', function () {
+  close(unl('Cancer Shield 2.0', 'PA', 75).rate, 0.65, 'Cancer 75');
+  close(unl('Cancer Shield 2.0', 'PA', 76).rate, 0.60, 'Cancer 76');
+  assert.strictEqual(unl('Cancer Shield 2.0', 'PA', 86).message, engine.NOT_FOUND);
+  assert.strictEqual(unl('Cancer Shield 2.0', 'PA', 17).message, engine.NOT_FOUND);
+
+  close(unl('Dental Shield 2.0 & DV', 'PA', 80).rate, 0.525, 'Dental 80');
+  close(unl('Dental Shield 2.0 & DV', 'PA', 81).rate, 0.475, 'Dental 81');
+  assert.strictEqual(unl('Dental Shield 2.0 & DV', 'PA', 90).message, engine.NOT_FOUND);
+
+  assert.strictEqual(unl('Short-Term Home Health Care Shield', 'PA', 54).message, engine.NOT_FOUND);
+  close(unl('Short-Term Home Health Care Shield', 'PA', 85).rate, 0.70, 'HHC 85');
+
+  close(unl('Hospital Indemnity Shield', 'PA', 79).rate, 0.725, 'Hosp 79');
+  close(unl('Hospital Indemnity Shield', 'PA', 80).rate, 0.625, 'Hosp 80');
+  assert.strictEqual(unl('Hospital Indemnity Shield', 'PA', 49).message, engine.NOT_FOUND);
+
+  close(unl('G.I. Hospital Indemnity Shield', 'PA', 79).rate, 0.45, 'GI 79');
+  close(unl('G.I. Hospital Indemnity Shield', 'PA', 80).rate, 0.35, 'GI 80');
+});
+
+test('UNL is on no sheet for California or New Jersey', function () {
+  ['CA', 'NJ'].forEach(function (st) {
+    assert.deepStrictEqual(engine.getProducts('UNL', st), [], st + ' should offer nothing');
+  });
+});
+
+test('states flagged for a different loss ratio are left out of that product', function () {
+  // Each sheet names states whose loss ratio differs and whose commission is
+  // therefore lower, without printing the figure. Loading the basic-state rate
+  // there would overstate the commission, so those combinations are absent.
+  assert.ok(engine.getProducts('UNL', 'OH').indexOf('Cancer Shield 2.0') === -1,
+    'Ohio Cancer Shield has a different loss ratio');
+  ['AZ', 'VA'].forEach(function (st) {
+    assert.ok(engine.getProducts('UNL', st).indexOf('Hospital Indemnity Shield') === -1,
+      st + ' Hospital Indemnity Shield has a different loss ratio');
+  });
+  // The same states still get the products whose sheets do list them.
+  assert.ok(engine.getProducts('UNL', 'OH').indexOf('Dental Shield 2.0 & DV') !== -1);
+  assert.ok(engine.getProducts('UNL', 'AZ').indexOf('G.I. Hospital Indemnity Shield') !== -1);
+  assert.ok(engine.getProducts('UNL', 'VA').indexOf('G.I. Hospital Indemnity Shield') !== -1);
+});
+
+test('UNL advances 9 months on every product', function () {
+  var r = unl('Hospital Indemnity Shield', 'PA', 70);
+  assert.strictEqual(engine.getAdvanceMonths('UNL', 'ancillary'), 9);
+  assert.strictEqual(r.advanceMonths, 9);
+  close(r.totalFirstYearCommission, 870, 'first year');
+  close(r.upfrontCommission, 652.50, 'advance');
+  close(r.remainingAsEarned, 217.50, 'remaining');
+});
+
+test('every UNL rule records its rank and renewal rates', function () {
+  DATA.rules.filter(function (r) { return r.carrier === 'UNL'; })
+    .forEach(function (r) {
+      assert.ok(/UNL rank \d+/.test(r.note), r.product + ' should name the rank');
+      assert.ok(/Renewals:/.test(r.note), r.product + ' should record its renewal rates');
+    });
 });
 
 console.log('\nNCD');

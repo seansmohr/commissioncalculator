@@ -101,6 +101,10 @@
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary". The MGA commission schedule states no advance term of its own.'
     },
+    'UNL': {
+      default: 9,
+      source: 'Confirmed with the agency: 9 month advance on all products. The rank workbook states no advance term of its own.'
+    },
     'NCD': {
       default: 0,
       source: 'SGA compensation schedule, General Rules: "Commissions are paid out as earned."'
@@ -2176,6 +2180,91 @@
         note: FLAT + ' ' + FEES
       }]);
     });
+  }());
+
+
+  // ===========================================================================
+  // UNL - 9 month advance on all products
+  //
+  // Source: "Mohr Insurance Services UNL Commissions with Ranks.xlsx", five
+  // sheets, one per product. Each sheet lists every UNL rank from street level
+  // upward; the row shaded blue and labelled "Mohr Insurance Services Comps" is
+  // ours, and it is the only row loaded. Our rank differs by product - 60 on
+  // Cancer Shield, 47 on Dental Shield, 60 on Home Health Care, 75 on Hospital
+  // Indemnity Shield and 50 on the G.I. Hospital Indemnity Shield.
+  //
+  // Each sheet's header names the "Basic States" its rates apply to, at a 50%
+  // or 55% loss ratio, and then adds a note naming states that "have different
+  // loss ratios and will have a lower commission percentage" WITHOUT giving the
+  // figure. Those states get no rule - loading the basic-state rate there would
+  // overstate the commission. The affected combinations are noted in
+  // data/SOURCES.md.
+  //
+  // California and New Jersey appear on no sheet at all.
+  // ===========================================================================
+  (function unl() {
+    var UNL = 'UNL';
+
+    // Basic states per product, reduced to the states we are appointed in.
+    var CANCER = ['AZ', 'FL', 'ID', 'IL', 'LA', 'NC', 'NV', 'PA', 'TX'];
+    var DENTAL = ['AZ', 'FL', 'ID', 'IL', 'LA', 'NC', 'OH', 'PA', 'TX', 'VA'];
+    var HHC = ['AZ', 'ID', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX'];
+    var HOSP = ['FL', 'ID', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX'];
+    var GI_HOSP = ['AZ', 'FL', 'ID', 'IL', 'LA', 'NC', 'NV', 'OH', 'PA', 'TX', 'VA'];
+
+    function unlNote(rank, lossRatio, renewals) {
+      return 'UNL rank ' + rank + ', our contracted level. Basic-state rate at a ' +
+        lossRatio + '% loss ratio. Renewals: ' + renewals + '.';
+    }
+
+    var C = unlNote(60, 50, 'years 2-10 pay 17% at issue ages 18-75 and 14.5% at 76-85; years 11+ pay 12% and 9.5%');
+    var D = unlNote(47, 50, 'years 2-5 pay 15% at issue ages 18-80 and 10% at 81-89; years 6+ pay 11% and 6%');
+    var H = unlNote(60, 55, 'years 2+ pay 12%');
+    var HI = unlNote(75, 50, 'years 2-10 pay 12.5% and years 11+ pay 6%, at both issue-age bands');
+    var GI = unlNote(50, 55, 'years 2-10 pay 6% and years 11+ pay 5%, at both issue-age bands');
+
+    add([
+      {
+        carrier: UNL, states: CANCER, category: 'ancillary',
+        product: 'Cancer Shield 2.0', minAge: 18, maxAge: 75, rate: 0.65, note: C
+      },
+      {
+        carrier: UNL, states: CANCER, category: 'ancillary',
+        product: 'Cancer Shield 2.0', minAge: 76, maxAge: 85, rate: 0.60, note: C
+      },
+
+      {
+        carrier: UNL, states: DENTAL, category: 'ancillary',
+        product: 'Dental Shield 2.0 & DV', minAge: 18, maxAge: 80, rate: 0.525, note: D
+      },
+      {
+        carrier: UNL, states: DENTAL, category: 'ancillary',
+        product: 'Dental Shield 2.0 & DV', minAge: 81, maxAge: 89, rate: 0.475, note: D
+      },
+
+      {
+        carrier: UNL, states: HHC, category: 'ancillary',
+        product: 'Short-Term Home Health Care Shield', minAge: 55, maxAge: 85, rate: 0.70, note: H
+      },
+
+      {
+        carrier: UNL, states: HOSP, category: 'ancillary',
+        product: 'Hospital Indemnity Shield', minAge: 50, maxAge: 79, rate: 0.725, note: HI
+      },
+      {
+        carrier: UNL, states: HOSP, category: 'ancillary',
+        product: 'Hospital Indemnity Shield', minAge: 80, maxAge: 85, rate: 0.625, note: HI
+      },
+
+      {
+        carrier: UNL, states: GI_HOSP, category: 'ancillary',
+        product: 'G.I. Hospital Indemnity Shield', minAge: 50, maxAge: 79, rate: 0.45, note: GI
+      },
+      {
+        carrier: UNL, states: GI_HOSP, category: 'ancillary',
+        product: 'G.I. Hospital Indemnity Shield', minAge: 80, maxAge: 85, rate: 0.35, note: GI
+      }
+    ]);
   }());
 
   // ---------------------------------------------------------------------------
