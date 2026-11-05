@@ -57,8 +57,11 @@ not.
 Fidelity advances 9 months on Medicare Supplement and 6 months on ancillary.
 Liberty Bankers advances 9 months on ancillary and nothing on Medicare
 Supplement. Heartland advances 9 months, except on Medicare Supplement under 65
-or at 81+, which pays as-earned. The calculator applies the right one and shows
-which source it came from.
+or at 81+, which pays as-earned. Manhattan Life advances 6 months on everything.
+United American and NCD advance nothing and pay as earned. Everest's term is not
+on file, so its card reports the first-year commission and says the upfront
+figure is unknown. The calculator applies the right one and shows which source it
+came from.
 
 ## The math
 

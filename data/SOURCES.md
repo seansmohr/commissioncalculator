@@ -744,6 +744,12 @@ One error was found and fixed: **Nevada belongs in the top Short Term Care band*
 first transcribed, so Nevada Short Term Care returned "not found" instead of a
 rate. Every other Short Term Care band was correct.
 
+**Advance: 6 months on all products**, confirmed with the agency. This
+supersedes the spreadsheet, which recorded "No advance" — Manhattan Life was
+the carrier that entry was read from, and it was wrong. The schedule itself
+states no advance term, so the agency's word is the source. Every Manhattan Life
+result now shows a six-month advance with the remaining six months as earned.
+
 ### Mutual of Omaha — Pennsylvania resolved
 
 Pennsylvania Long Term Care has two new-business scales depending on whether the

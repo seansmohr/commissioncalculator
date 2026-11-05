@@ -119,16 +119,19 @@ test('Liberty Bankers advances differ by product category', function () {
   assert.strictEqual(engine.getAdvanceMonths('Liberty Bankers', 'ancillary'), 9);
 });
 
-test('advance lookup distinguishes a real term, no advance, and unknown carrier', function () {
-  assert.strictEqual(engine.getAdvanceMonths('Manhattan Life', 'ancillary'), 0, 'a genuine no-advance carrier');
+test('advance lookup distinguishes a real term, no advance, unknown term and unknown carrier', function () {
+  assert.strictEqual(engine.getAdvanceMonths('NCD', 'ancillary'), 0, 'a genuine no-advance carrier');
+  assert.strictEqual(engine.getAdvanceMonths('United American', 'ancillary'), 0, 'another');
   assert.strictEqual(engine.getAdvanceMonths('Heartland', 'ancillary'), 9, 'a real term');
+  assert.strictEqual(engine.getAdvanceMonths('Everest', 'ancillary'), null, 'carrier known, term not on file');
   assert.strictEqual(engine.getAdvanceMonths('Nonexistent Carrier', 'ancillary'), undefined, 'unknown carrier');
 });
 
 test('flat-advance carriers apply the same advance to every category', function () {
   assert.strictEqual(engine.getAdvanceMonths('Aetna Senior Supplemental', 'medicare_supplement'), 12);
   assert.strictEqual(engine.getAdvanceMonths('Aetna Senior Supplemental', 'final_expense'), 12);
-  assert.strictEqual(engine.getAdvanceMonths('Manhattan Life', 'ancillary'), 0);
+  assert.strictEqual(engine.getAdvanceMonths('Manhattan Life', 'ancillary'), 6);
+  assert.strictEqual(engine.getAdvanceMonths('Manhattan Life', 'medicare_supplement'), 6);
   assert.strictEqual(engine.getAdvanceMonths('Physicians Mutual', 'life'), 9);
 });
 
@@ -196,18 +199,18 @@ test('same Bankers Fidelity state uses a 9-month advance for Medicare Supplement
   close(r.rate, 0.23, 'rate');
 });
 
-test('no advance: Manhattan Life pays as-earned monthly', function () {
+test('no advance: NCD pays as-earned monthly', function () {
   var r = engine.calculate({
-    carrier: 'Manhattan Life',
+    carrier: 'NCD',
     state: 'TX',
-    product: 'Home Health Care',
+    product: 'VSP Vision',
     age: 60,
     monthlyPremium: 100
   });
   assert.ok(r.found);
   assert.strictEqual(r.advanceMonths, 0);
   assert.strictEqual(r.paymentMethod, 'as-earned');
-  close(r.monthlyCommission, 70, 'monthly commission');
+  close(r.monthlyCommission, 37, 'monthly commission');
   assert.strictEqual(r.upfrontCommission, undefined);
 });
 
@@ -606,16 +609,27 @@ test('Hospital Indemnity Select is all states with two age bands', function () {
   });
 });
 
-test('every Manhattan Life product is as-earned with no advance', function () {
+test('every Manhattan Life product carries the 6 month advance', function () {
   var r = engine.calculate({
     carrier: 'Manhattan Life', state: 'NV',
     product: 'Short Term Care', age: 60, monthlyPremium: 120
   });
   assert.ok(r.found);
-  assert.strictEqual(r.advanceMonths, 0);
-  assert.strictEqual(r.paymentMethod, 'as-earned');
-  close(r.monthlyCommission, 72, 'monthly commission');
+  assert.strictEqual(r.advanceMonths, 6);
+  assert.strictEqual(r.paymentMethod, 'advance');
   close(r.totalFirstYearCommission, 864, 'total first year');
+  close(r.upfrontCommission, 432, 'six months up front');
+  close(r.remainingAsEarned, 432, 'six months as earned');
+  assert.strictEqual(r.remainingMonths, 6);
+  assert.strictEqual(r.monthlyCommission, undefined, 'an advanced rule has no monthly figure');
+
+  // The term is the same on every category, not just ancillary.
+  var categories = {};
+  DATA.rules.filter(function (x) { return x.carrier === 'Manhattan Life'; })
+    .forEach(function (x) { categories[x.category] = true; });
+  Object.keys(categories).forEach(function (category) {
+    assert.strictEqual(engine.getAdvanceMonths('Manhattan Life', category), 6, category);
+  });
 });
 
 console.log('\nAflac / Tier One (all 4 pages)');

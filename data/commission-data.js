@@ -72,8 +72,8 @@
       source: 'Spreadsheet: "9 month advance"'
     },
     'Manhattan Life': {
-      default: 0,
-      source: 'Spreadsheet: "No advance"'
+      default: 6,
+      source: 'Confirmed with the agency: 6 month advance on all products. This supersedes the spreadsheet, which recorded "No advance".'
     },
     'Aflac': {
       default: 12,
