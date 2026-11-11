@@ -784,15 +784,26 @@ test('every rule flagged for verification explains why', function () {
   });
 });
 
-test('the only flagged rules are the two known Healthspring ambiguities', function () {
-  var flagged = DATA.rules.filter(function (r) { return r.verify; })
-    .map(function (r) { return r.carrier + '/' + r.product; });
-  flagged.forEach(function (name) {
-    assert.ok(
-      name === 'Healthspring/Medicare Supplement - Plan A' ||
-      name === 'Healthspring/Medicare Supplement - Plan HDG',
-      'unexpected flagged rule: ' + name
-    );
+test('only known, documented ambiguities are flagged', function () {
+  var flagged = DATA.rules.filter(function (r) { return r.verify; });
+  flagged.forEach(function (r) {
+    var ok =
+      // The carrier's own schedule contradicts itself.
+      (r.carrier === 'Healthspring' &&
+        (r.product === 'Medicare Supplement - Plan A' ||
+         r.product === 'Medicare Supplement - Plan HDG')) ||
+      // Our Humana Achieve contract level is assumed, not confirmed.
+      (r.carrier === 'Humana' && r.product.indexOf('Achieve (Level 4)') !== -1);
+    assert.ok(ok, 'unexpected flagged rule: ' + r.carrier + '/' + r.product);
+  });
+});
+
+test('no Humana Standard Core & Value rule is flagged', function () {
+  // Those tables carry no contract level, so nothing about them is assumed.
+  DATA.rules.filter(function (r) {
+    return r.carrier === 'Humana' && r.product.indexOf('Standard Core') !== -1;
+  }).forEach(function (r) {
+    assert.ok(!r.verify, r.product + ' should not be flagged');
   });
 });
 
@@ -1077,7 +1088,7 @@ test('calculate() still delegates to the MAPD path when handed the MAPD carrier'
 test('MAPD is not a carrier and stays out of the carrier list', function () {
   var carriers = engine.getCarriers();
   assert.strictEqual(carriers.indexOf(MAPD_CARRIER), -1, 'MAPD must not appear as a carrier');
-  assert.strictEqual(carriers.length, 19, 'the carrier list is the nineteen real carriers');
+  assert.strictEqual(carriers.length, 20, 'the carrier list is the twenty real carriers');
   assert.ok(engine.isMapd(MAPD_CARRIER));
   assert.ok(!engine.isMapd('Aetna Senior Supplemental'));
   assert.strictEqual(engine.MAPD_CARRIER, MAPD_CARRIER);
@@ -1204,6 +1215,119 @@ test('existing percentage-of-premium carriers are untouched by MAPD', function (
   close(r.rate, 0.25, 'rate');
   close(r.upfrontCommission, 300, 'upfront');
   assert.strictEqual(r.advanceMonths, 12);
+});
+
+console.log('\nHumana');
+
+var SCV = 'Medicare Supplement Standard Core & Value - ';
+var ACH = 'Medicare Supplement Achieve (Level 4) - ';
+
+function hum(product, state, age) {
+  return engine.calculate({
+    carrier: 'Humana', state: state, product: product, age: age, monthlyPremium: 100
+  });
+}
+
+test('Humana is written in all 13 states on Standard Core & Value', function () {
+  assert.ok(engine.getCarriers().indexOf('Humana') !== -1);
+  ['AZ', 'CA', 'FL', 'ID', 'IL', 'LA', 'NC', 'NJ', 'NV', 'OH', 'PA', 'TX', 'VA'].forEach(function (st) {
+    assert.ok(hum(SCV + 'Open Enrollment', st, 70).found, st + ' should resolve');
+  });
+});
+
+test('Standard Core & Value ages 65-80 match the schedule', function () {
+  close(hum(SCV + 'Open Enrollment', 'AZ', 70).rate, 0.22, 'AZ');
+  close(hum(SCV + 'Open Enrollment', 'OH', 70).rate, 0.24, 'OH is the high one');
+  close(hum(SCV + 'Open Enrollment', 'NV', 70).rate, 0.20, 'NV is the low one');
+  close(hum(SCV + 'Guaranteed Issue', 'AZ', 70).rate, 0.03, 'AZ GI');
+  close(hum(SCV + 'Guaranteed Issue', 'PA', 70).rate, 0.04, 'PA GI');
+  close(hum(SCV + 'Guaranteed Issue', 'CA', 70).rate, 0.22, 'CA pays GI the full rate');
+});
+
+test('enrollment type is a product because the three can differ', function () {
+  // California under 65: open enrollment pays, underwriting and GI do not.
+  close(hum(SCV + 'Open Enrollment', 'CA', 60).rate, 0.05, 'CA under-65 OE');
+  close(hum(SCV + 'Underwritten', 'CA', 60).rate, 0, 'CA under-65 UW');
+  close(hum(SCV + 'Guaranteed Issue', 'CA', 60).rate, 0, 'CA under-65 GI');
+  // Illinois under 65: OE and UW agree, GI is a tenth of them.
+  close(hum(SCV + 'Open Enrollment', 'IL', 60).rate, 0.11, 'IL under-65 OE');
+  close(hum(SCV + 'Underwritten', 'IL', 60).rate, 0.11, 'IL under-65 UW');
+  close(hum(SCV + 'Guaranteed Issue', 'IL', 60).rate, 0.01, 'IL under-65 GI');
+});
+
+test('the 81+ band is not simply half of 65-80 everywhere', function () {
+  close(hum(SCV + 'Open Enrollment', 'AZ', 85).rate, 0.11, 'AZ halves');
+  close(hum(SCV + 'Open Enrollment', 'OH', 85).rate, 0.12, 'OH halves');
+  // Florida, Idaho and Virginia hold their full rate past 80.
+  close(hum(SCV + 'Open Enrollment', 'FL', 85).rate, 0.22, 'FL holds at 22%');
+  close(hum(SCV + 'Open Enrollment', 'ID', 85).rate, 0.22, 'ID holds at 22%');
+  close(hum(SCV + 'Open Enrollment', 'VA', 85).rate, 0.22, 'VA holds at 22%');
+});
+
+test('Achieve separates Plan N and pays it more', function () {
+  close(hum(ACH + 'Plans excluding N, Open Enrollment', 'TX', 70).rate, 0.22, 'TX excl N');
+  close(hum(ACH + 'Plan N, Open Enrollment', 'TX', 70).rate, 0.26, 'TX Plan N');
+  close(hum(ACH + 'Plans excluding N, Open Enrollment', 'OH', 70).rate, 0.24, 'OH excl N');
+  close(hum(ACH + 'Plan N, Open Enrollment', 'OH', 70).rate, 0.29, 'OH Plan N');
+  close(hum(ACH + 'Plan N, Open Enrollment', 'OH', 85).rate, 0.145, 'OH Plan N 81+');
+});
+
+test('Achieve guaranteed issue pays a flat dollar amount, not a percentage', function () {
+  var tx = hum(ACH + 'Plans excluding N, Guaranteed Issue', 'TX', 70);
+  assert.strictEqual(tx.pricing, 'flat');
+  close(tx.totalFirstYearCommission, 25, 'TX GI is $25');
+  assert.strictEqual(tx.rate, undefined, 'a flat rule has no percentage');
+  var pa = hum(ACH + 'Plans excluding N, Guaranteed Issue', 'PA', 70);
+  close(pa.totalFirstYearCommission, 50, 'Pennsylvania GI is $50');
+  // Where the schedule gives Achieve GI as a percentage instead, it stays one.
+  var ca = hum(ACH + 'Plans excluding N, Guaranteed Issue', 'CA', 70);
+  assert.strictEqual(ca.pricing, 'rate');
+  close(ca.rate, 0.22, 'CA Achieve GI is a percentage');
+});
+
+test('Idaho and Nevada are on no Achieve table', function () {
+  ['ID', 'NV'].forEach(function (st) {
+    var achieve = engine.getProducts('Humana', st).filter(function (p) {
+      return p.indexOf('Achieve') !== -1;
+    });
+    assert.deepStrictEqual(achieve, [], st + ' should offer no Achieve product');
+    // Standard Core & Value still reaches them.
+    assert.ok(hum(SCV + 'Open Enrollment', st, 70).found, st + ' keeps Standard Core & Value');
+  });
+});
+
+test('every Achieve rule is flagged, because the contract level is assumed', function () {
+  var achieve = DATA.rules.filter(function (r) {
+    return r.carrier === 'Humana' && r.product.indexOf('Achieve') !== -1;
+  });
+  assert.ok(achieve.length > 0);
+  achieve.forEach(function (r) {
+    assert.ok(r.verify, r.product + ' should be flagged');
+    assert.ok(/Level 4/.test(r.product), 'the level belongs in the product name');
+    assert.ok(/confirm our level/.test(r.note), r.product + ' should say to confirm the level');
+  });
+});
+
+test('Humana pays the first year annually, with no advance and no monthly figure', function () {
+  var r = hum(SCV + 'Open Enrollment', 'TX', 70);
+  assert.strictEqual(engine.getAdvanceMonths('Humana', 'medicare_supplement'), 0);
+  assert.strictEqual(r.paymentMethod, 'annual');
+  assert.strictEqual(r.upfrontCommission, undefined);
+  assert.strictEqual(r.monthlyCommission, undefined);
+  close(r.totalFirstYearCommission, 264, 'first year on $100 a month at 22%');
+});
+
+test('a documented 0% is still a hit, not a missing lookup', function () {
+  var r = hum(SCV + 'Open Enrollment', 'TX', 60);
+  assert.ok(r.found, 'Texas under 65 pays nothing, but the rate is known');
+  close(r.rate, 0, 'TX under-65');
+  close(r.totalFirstYearCommission, 0, 'TX under-65 total');
+});
+
+test('Humana age bands cover every age without overlapping', function () {
+  [0, 64, 65, 80, 81, 100].forEach(function (age) {
+    assert.ok(hum(SCV + 'Open Enrollment', 'TX', age).found, 'age ' + age + ' should resolve');
+  });
 });
 
 console.log('\nUNL');

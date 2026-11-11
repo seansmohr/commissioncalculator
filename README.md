@@ -169,7 +169,7 @@ the asset allowlist and path-traversal handling.
 Loaded: Aetna Senior Supplemental, Aflac, American Benefit Life,
 Anthem Blue Cross (California only), Bankers Fidelity, Blue Shield of California
 (California only), Everest, GTL, Healthspring,
-Heartland, Liberty Bankers, Manhattan Life, Medico, NCD, UNL,
+Heartland, Humana, Liberty Bankers, Manhattan Life, Medico, NCD, UNL,
 Mutual of Omaha (Long Term Care only), Physicians Mutual, United American,
 UnitedHealthcare (AARP Medicare Supplement).
 
@@ -190,6 +190,12 @@ verification and shows a caution note on the results card. See
 capped at but not every carrier pays. UnitedHealthcare's own schedule pays
 $406-$510 initial on a **non-SNP PPO** against the $694-$864 the tab shows — its
 HMO, SNP and renewal amounts do match. See [`data/SOURCES.md`](data/SOURCES.md).
+
+**Humana** is loaded from both its Medicare Supplement families. Its **Achieve**
+contract level is an assumption — the schedule prints Level 4 and Level 5 side
+by side and says producers default to Level 4, so Level 4 is loaded, the level
+is in the product name, and every Achieve rule shows a caution. Its **Standard
+Core & Value** rules carry no level and are not flagged.
 
 **UNL** is loaded at our own rank on each of its five product sheets, which is
 not the same rank on every product. Where a sheet says a state's loss ratio

@@ -101,6 +101,10 @@
       byCategory: { medicare_supplement: 9 },
       source: 'Spreadsheet: "9 month advance for Medicare Supplement ; 6 month advance for ancillary". The MGA commission schedule states no advance term of its own.'
     },
+    'Humana': {
+      default: 0,
+      source: 'No advance. Medicare Supplement first-year commission is paid annually in one payment; subsequent years are paid monthly from the 13th month.'
+    },
     'UNL': {
       default: 9,
       source: 'Confirmed with the agency: 9 month advance on all products. The rank workbook states no advance term of its own.'
@@ -2265,6 +2269,133 @@
         product: 'G.I. Hospital Indemnity Shield', minAge: 80, maxAge: 85, rate: 0.35, note: GI
       }
     ]);
+  }());
+
+
+  // ===========================================================================
+  // HUMANA  (Medicare Supplement) - first year paid annually, no advance
+  //
+  // Source: Humana Producer Partnership Plan GHHN7GKEN 01/2027 B, Medicare
+  // Supplement section (pages 30-44), for policies with effective dates on or
+  // after 01/01/2027. Two product families with separate schedules:
+  //
+  //   Standard Core and Value - pages 31-35. Those rate tables are supplied as
+  //                             images with no text layer and were read from
+  //                             page renders.
+  //   Achieve                 - pages 36-42, read by coordinate extraction.
+  //
+  // Humana splits Medicare Supplement three ways at once: by state, by issue
+  // age (under 65 / 65-80 / 81+) and by ENROLLMENT TYPE - Open Enrollment,
+  // Underwritten, Guaranteed Issue. The three often pay very differently;
+  // California under 65 pays 5% on open enrollment and 0% underwritten, and
+  // Illinois under 65 pays 11% on either against 1% guaranteed issue. Nothing
+  // else in the calculator can identify the enrollment type, so each is its own
+  // product and the agent picks it.
+  //
+  // Achieve additionally separates Plan N from the other plans, and pays
+  // guaranteed-issue business a flat $25 - $50 in Pennsylvania - rather than a
+  // percentage.
+  //
+  // THE ACHIEVE CONTRACT LEVEL IS AN ASSUMPTION. The schedule prints Level 4
+  // and Level 5 side by side and states "Producers default to Level 4 unless
+  // otherwise specified". Level 4 is loaded, the level is written into the
+  // product name so it is visible at the point of use, and every Achieve rule
+  // is flagged for verification. Level 5 pays about a point more throughout.
+  //
+  // Only policy year 1 is loaded. Humana pays the first year annually in one
+  // payment rather than advancing it, so these rules carry `paidAnnually` and
+  // the results card shows no advance and no monthly figure.
+  //
+  // Idaho and Nevada appear on the Standard Core and Value tables but on no
+  // Achieve table.
+  // ===========================================================================
+  (function humana() {
+    var H = 'Humana';
+    var D25 = { flat: 25 };
+    var D50 = { flat: 50 };
+
+    var SCV_NOTE = 'Standard Core and Value schedule, policy year 1, paid annually in one payment. Subsequent years are paid monthly from the 13th month. Commission is not paid on premium increases, nor on the portion of premium covering the Part B deductible.';
+    var ACH_NOTE = 'Achieve schedule at Level 4, policy year 1, paid annually in one payment. Humana prints Level 4 and Level 5 side by side and states that producers default to Level 4 unless otherwise specified - confirm our level, as Level 5 pays about a point more throughout.';
+
+    var ENROLLMENT = ['Open Enrollment', 'Underwritten', 'Guaranteed Issue'];
+    var BANDS = [
+      { minAge: null, maxAge: 64 },
+      { minAge: 65, maxAge: 80 },
+      { minAge: 81, maxAge: null }
+    ];
+
+    function emit(product, state, band, value, note, verify) {
+      var rule = {
+        carrier: H, states: [state], category: 'medicare_supplement',
+        product: product, paidAnnually: true, advanceMonths: 0, note: note
+      };
+      if (band.minAge != null) { rule.minAge = band.minAge; }
+      if (band.maxAge != null) { rule.maxAge = band.maxAge; }
+      if (value && typeof value === 'object') {
+        rule.flatAmount = value.flat;
+      } else {
+        rule.rate = value;
+      }
+      if (verify) { rule.verify = true; }
+      add([rule]);
+    }
+
+    // --- Standard Core and Value --------------------------------------------
+    // state: [ under 65, ages 65-80, ages 81+ ], each [OE, Underwritten, GI].
+    var STANDARD = {
+      AZ: [[0, 0, 0], [0.22, 0.22, 0.03], [0.11, 0.11, 0.01]],
+      CA: [[0.05, 0, 0], [0.22, 0.22, 0.22], [0.11, 0.11, 0.11]],
+      FL: [[0.05, 0.05, 0.05], [0.22, 0.22, 0.22], [0.22, 0.22, 0.22]],
+      ID: [[0.22, 0.22, 0.22], [0.22, 0.22, 0.22], [0.22, 0.22, 0.22]],
+      IL: [[0.11, 0.11, 0.01], [0.22, 0.22, 0.03], [0.11, 0.11, 0.01]],
+      LA: [[0, 0, 0], [0.22, 0.22, 0.03], [0.11, 0.11, 0.01]],
+      NC: [[0, 0, 0], [0.22, 0.22, 0.03], [0.11, 0.11, 0.01]],
+      NJ: [[0, 0, 0], [0.22, 0.22, 0.03], [0.11, 0.11, 0.01]],
+      NV: [[0, 0, 0], [0.2, 0.2, 0.2], [0.1, 0.1, 0.1]],
+      OH: [[0, 0, 0], [0.24, 0.24, 0.03], [0.12, 0.12, 0.01]],
+      PA: [[0.04, 0.04, 0.04], [0.22, 0.22, 0.04], [0.11, 0.11, 0.04]],
+      TX: [[0, 0, 0], [0.22, 0.22, 0.03], [0.11, 0.11, 0.01]],
+      VA: [[0, 0, 0], [0.22, 0.22, 0.03], [0.22, 0.22, 0.03]],
+    };
+
+    Object.keys(STANDARD).forEach(function (state) {
+      STANDARD[state].forEach(function (band, i) {
+        band.forEach(function (value, e) {
+          emit('Medicare Supplement Standard Core & Value - ' + ENROLLMENT[e],
+            state, BANDS[i], value, SCV_NOTE, false);
+        });
+      });
+    });
+
+    // --- Achieve, Level 4 ----------------------------------------------------
+    // state: [ under 65, ages 65-80, ages 81+ ], each [ plans excluding N,
+    // Plan N ], each [OE, Underwritten, GI].
+    var ACHIEVE = {
+      AZ: [[[0, 0, 0], [0, 0, 0]], [[0.22, 0.22, D25], [0.26, 0.26, D25]], [[0.11, 0.11, D25], [0.13, 0.13, D25]]],
+      CA: [[[0.05, 0, 0], [0.05, 0, 0]], [[0.22, 0.22, 0.22], [0.26, 0.26, 0.26]], [[0.11, 0.11, 0.11], [0.13, 0.13, 0.13]]],
+      FL: [[[0.01, 0.01, 0.01], [0.01, 0.01, 0.01]], [[0.22, 0.22, 0.22], [0.26, 0.26, 0.26]], [[0.11, 0.11, 0.11], [0.13, 0.13, 0.13]]],
+      IL: [[[0.11, 0.11, D25], [0.13, 0.13, D25]], [[0.22, 0.22, D25], [0.26, 0.26, D25]], [[0.11, 0.11, D25], [0.13, 0.13, D25]]],
+      LA: [[[0, 0, 0], [0, 0, 0]], [[0.22, 0.22, D25], [0.26, 0.26, D25]], [[0.11, 0.11, D25], [0.13, 0.13, D25]]],
+      NC: [[[0, 0, 0], [0, 0, 0]], [[0.22, 0.22, D25], [0.26, 0.26, D25]], [[0.11, 0.11, D25], [0.13, 0.13, D25]]],
+      NJ: [[[0, 0, 0], [0, 0, 0]], [[0.22, 0.22, D25], [0.26, 0.26, D25]], [[0.11, 0.11, D25], [0.13, 0.13, D25]]],
+      OH: [[[0, 0, 0], [0, 0, 0]], [[0.24, 0.24, D25], [0.29, 0.29, D25]], [[0.12, 0.12, D25], [0.145, 0.145, D25]]],
+      PA: [[[0.01, 0.01, D50], [0.01, 0.01, D50]], [[0.22, 0.22, D50], [0.26, 0.26, D50]], [[0.11, 0.11, D50], [0.13, 0.13, D50]]],
+      TX: [[[0, 0, 0], [0, 0, 0]], [[0.22, 0.22, D25], [0.26, 0.26, D25]], [[0.11, 0.11, D25], [0.13, 0.13, D25]]],
+      VA: [[[0, 0, 0], [0, 0, 0]], [[0.22, 0.22, D25], [0.26, 0.26, D25]], [[0.11, 0.11, D25], [0.13, 0.13, D25]]],
+    };
+
+    var PLAN_GROUP = ['Plans excluding N', 'Plan N'];
+
+    Object.keys(ACHIEVE).forEach(function (state) {
+      ACHIEVE[state].forEach(function (band, i) {
+        band.forEach(function (group, g) {
+          group.forEach(function (value, e) {
+            emit('Medicare Supplement Achieve (Level 4) - ' + PLAN_GROUP[g] + ', ' + ENROLLMENT[e],
+              state, BANDS[i], value, ACH_NOTE, true);
+          });
+        });
+      });
+    });
   }());
 
   // ---------------------------------------------------------------------------

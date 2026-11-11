@@ -12,6 +12,7 @@ published rates are used anywhere.
 | Anthem Blue Cross | `brk-2026CAMedSup CommSch.pdf` — **both pages** (California Medicare Supplement, effective 03/01/2026) | Broker (the schedule states one level) |
 | Aetna Senior Supplemental | `aetna senior supplemental commission schedule.pdf` (rev. 07/23/2026, BRKPRDXX2_12) — **all 9 pages** | General Agent, Level 12 |
 | Mutual of Omaha | `Mutual of Omaha Commission Schedule.pdf` (MT0044_0526, eff. 05/01/2026) — **all 16 pages** | General Agent (BMO151) |
+| Humana | `Humana Individual Products PPP.pdf` (GHHN7GKEN 01/2027 B) — **Medicare Supplement section, pages 30-44** | Standard Core & Value: no level; Achieve: **Level 4 assumed** |
 | Healthspring — Medicare Supplement | `mclic-amga-sa-hs.pdf` — **both pages** (Medco Containment Life Insurance Company, eff. 09/22/2025) | AMGA-70 |
 | Healthspring — everything else | Loyal American Life commission schedule (eff. 04/07/2025) — **all 5 pages** | GA-60 |
 | Physicians Mutual | `physicians mutual commission schedules.xlsx` — **all sheets, confirmed against screenshots** | General Agent (topline street), Level 5 |
@@ -174,6 +175,72 @@ column structure that flat text extraction destroys. Scanned pages with no text
 layer are read visually from page renders. This is how the Aetna, Mutual of
 Omaha, Healthspring and Physicians Mutual entries were produced, and it is the
 right way to add the remaining carriers.
+
+### Humana — two product families, three enrollment types, one assumption
+
+The Medicare Supplement section of Humana's Producer Partnership Plan
+(GHHN7GKEN 01/2027 B), for policies effective on or after **01/01/2027**. Two
+product families with separate schedules:
+
+- **Standard Core and Value** (pages 31-35) — the rate tables are **images with
+  no text layer**, so they were read from page renders rather than extracted.
+- **Achieve** (pages 36-42) — text layer, read by coordinate extraction.
+
+**Three dimensions at once.** Humana splits by state, by issue age (under 65 /
+65-80 / 81+) **and by enrollment type** — Open Enrollment, Underwritten,
+Guaranteed Issue. The three are not interchangeable:
+
+| | Open Enrollment | Underwritten | Guaranteed Issue |
+|---|---|---|---|
+| California, under 65 | **5%** | 0% | 0% |
+| Illinois, under 65 | 11% | 11% | **1%** |
+| Arizona, 65-80 | 22% | 22% | **3%** |
+
+Nothing else in the calculator can identify the enrollment type, so each is its
+own product and the agent picks it — the same approach used for Anthem and
+Healthspring. Three products on Standard Core & Value, six on Achieve, which
+also separates **Plan N** (it pays about four points more) from the rest.
+
+**The 81+ band is not simply half the 65-80 band.** Most states halve — Arizona
+22% to 11%, Ohio 24% to 12% — but **Florida, Idaho and Virginia hold their full
+22% past 80**. Nevada runs 20% then 10%, and Ohio is the only state above 22% at
+65-80.
+
+**Achieve guaranteed issue pays flat dollars**, not a percentage: **$25**, or
+**$50 in Pennsylvania**. California and Florida are exceptions — their Achieve
+GI stays a percentage.
+
+#### The Achieve contract level is assumed
+
+The Achieve schedule prints **Level 4 and Level 5 side by side** and states
+"Producers default to Level 4 unless otherwise specified". We were not told
+which level is ours, so:
+
+- **Level 4 is loaded**, per the schedule's own stated default.
+- **The level is written into the product name** — "Achieve (Level 4) - ..." —
+  so the assumption is visible at the point of use, not buried in a note.
+- **Every Achieve rule is flagged for verification** and its note says to
+  confirm the level.
+
+Level 5 pays roughly a point more throughout (23% against 22% at ages 65-80,
+27% against 26% on Plan N). One sentence confirming our level closes this; if it
+is Level 5, the fix is a one-line change to the generator table.
+
+The **Standard Core and Value** tables carry no contract level at all, so
+nothing about them is assumed and none of those rules is flagged.
+
+**Idaho and Nevada** are on the Standard Core and Value tables but appear on no
+Achieve table, so they get the three Standard products and no Achieve ones.
+
+**Advance: none.** First-year commission is paid **annually in one payment**,
+with subsequent years paid monthly from the 13th month, so these rules carry
+`paidAnnually` and the card shows no advance and no monthly figure.
+
+Carried as notes rather than modeled: commission is not paid on premium
+increases (attained-age or experience), nor on the portion of premium covering
+the Part B deductible (except in Indiana and Washington), and policy fees are
+not commissionable. Washington is paid monthly for the life of the policy, but
+we are not appointed there.
 
 ### UNL — our own rank picked out of five rank ladders
 
